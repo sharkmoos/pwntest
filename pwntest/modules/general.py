@@ -33,8 +33,10 @@ def connect_ssh(ip: str, port: int, user: str, password: str = "", keyfile: str 
 
 
 def run_socket_listener(listener_host: str, listener_port: int, socket_details: dict, timeout: float = 5.0) -> None:
-    """create a pwntools listener in a new thread that will pass
-    a connection back when a connection is made"""
+    """
+    create a pwntools listener in a new thread that will pass
+    a connection back when a connection is made.
+    """
 
     with pwn.log.progress("Waiting for connection") as progress:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,7 +64,7 @@ def run_socket_listener(listener_host: str, listener_port: int, socket_details: 
     socket_details["conn"] = conn
 
 
-class SSHTest(unittest.TestCase):
+class SSHTest:
     def __init__(self, binary_path: str, ip: str, port: int, ssh=None) -> None:
         super().__init__()
         self.remote_ip: str = ip
@@ -79,7 +81,9 @@ class SSHTest(unittest.TestCase):
         if "port" not in ssh:
             ssh["port"] = 22
 
-        self.assertFalse("password" not in ssh and "keyfile" not in ssh, "SSH Password or Keyfile not provided")
+        if "password" not in ssh and "keyfile" not in ssh:
+            pytest.fail("SSH Password or Keyfile not provided")
+
         if "password" in ssh and "keyfile" in ssh:
             self.ssh = connect_ssh(ip=ip, port=ssh["port"], user=ssh["user"], password=ssh["password"], keyfile=ssh["keyfile"])
         elif "password" in ssh:
@@ -87,18 +91,34 @@ class SSHTest(unittest.TestCase):
         elif "keyfile" in ssh:
             self.ssh = connect_ssh(ip=ip, port=ssh["port"], user=ssh["user"], keyfile=ssh["keyfile"])
 
-    def assert_download_remote_binary(self, remote_path: str, local_path: str) -> None:
+    def assert_download_remote_binary(self, remote_path: str, local_path: str) -> bool:
         remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
-        self.assertTrue(remote_file.exists, "Remote file does not exist")
+        if not remote_file.exists:
+            print("Remote file does not exist")
+            return False
+
         self.ssh.download_file(remote_path, local_path)
-        self.assertTrue(os.path.isfile(local_path), "Local file does not exist")
+        if not os.path.isfile(local_path):
+            print("Local file does not exist")
+            return False
 
-    def assert_current_user(self, user: str) -> None:
-        self.assertEqual(self.ssh.user, user, f"Current user is not {user}")
+        os.remove(local_path)
+        return True
 
-    def assert_file_owner(self, remote_path: str, user: str) -> None:
+    def assert_current_user(self, user: str) -> bool:
+        if self.ssh.user != user:
+            print(f"Current user is '{self.ssh.user}' not '{user}'")
+            return False
+
+        return True
+
+    def assert_file_owner(self, remote_path: str, user: str) -> bool:
         remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
-        self.assertEqual(remote_file.owner, user, "Remote file is not readable")
+        if remote_file.owner != user:
+            print(f"File owner is '{remote_file.owner}' not '{user}'")
+            return False
+
+        return True
 
     def assert_read_perms(self, remote_path: str, readable: bool) -> None:
         remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
@@ -106,7 +126,7 @@ class SSHTest(unittest.TestCase):
             try:
                 remote_file.open()
             except PermissionError:
-                self.fail("Error in 'assert_read_perms': Remote file is not readable")
+                print("")
         elif not readable:
             try:
                 remote_file.open()
