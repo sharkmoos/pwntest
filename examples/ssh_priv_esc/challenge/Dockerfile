@@ -1,7 +1,6 @@
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /home/ctf
 
 RUN apt-get update && apt install --no-install-recommends -y openssh-server openssh-client  && \
     useradd -rm -d /home/david -s /bin/bash -u 3232 david && \

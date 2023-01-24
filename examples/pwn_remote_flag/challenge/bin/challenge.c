@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/sendfile.h>
+#include <stdlib.h>
+
+void print_flag()
+{
+    FILE* fp = fopen("/flag", "r");
+    char flag[100];
+    fgets(flag, sizeof(flag), fp);
+    puts(flag);
+    exit(0);
+}
 
 int main()
 {
@@ -22,10 +32,7 @@ int main()
     }
     else
     {
-        puts("Here's your flag!");
-        FILE* fp = fopen("flag", "r");
-        sendfile(1, fileno(fp), NULL, 0x100);
-        return 0;
+        print_flag();
     }
 
 }

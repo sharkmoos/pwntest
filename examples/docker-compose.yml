@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  pwn_remote_flag:
+    build:
+      context: pwn_remote_flag/challenge
+      args:
+        COMPILE_CHALLENGE: "gcc challenge.c -no-pie -fno-stack-protector -o challenge"
+    ports:
+      - "9001:9999"
+  pwn_remote_shell:
+    build:
+      context: pwn_remote_shell/challenge
+      args:
+        COMPILE_CHALLENGE: "gcc challenge.c -no-pie -fno-stack-protector -o challenge"
+    ports:
+      - "9002:9999"
+  ssh_priv_esc:
+    build:
+      context: ssh_priv_esc/challenge
+    ports:
+      - "9003:22"
+  web_rev_shell:
+    build:
+      context: web_login/challenge
+    ports:
+      - "9004:5000"

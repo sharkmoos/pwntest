@@ -1,0 +1,25 @@
+
+
+pwn_remote_flag:
+  author: sharkmoos
+    docker: true
+      docker_path: examples/pwn_remote_flag/challenge
+    directory: examples/pwn_remote_flag/test_remote_flag.py
+
+pwn_remote_shell:
+  author: sharkmoos
+    docker: true
+      docker_path: examples/pwn_remote_shell/challenge
+    directory: examples/pwn_remote_shell/test_remote_shell.py
+
+ssh_priv_esc:
+  author: sharkmoos
+    docker: true
+      docker_path: examples/ssh_priv_esc/challenge
+    directory: examples/ssh_priv_esc/test_ssh.py
+
+web_login:
+  author: sharkmoos
+    docker: true
+      docker_path: examples/web_login/challenge
+    directory: examples/web_login/test_web.py
