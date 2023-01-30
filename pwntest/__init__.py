@@ -8,25 +8,49 @@ import threading
 import pwnlib.context
 import pwnlib.elf
 import pwnlib.log
+import pwnlib.replacements
+
+import pwntest.modules.extended_gdb as extended_gdb
 
 from pwntest.modules.pwn_ops import PwnAutomation
 from pwntest.modules.web_ops import WebAutomation
 
-from pwntest.modules.general import SSHTest, connect_ssh, run_socket_listener
+from pwntest.modules.general import SSHTest, run_socket_listener
+
+from logging import Formatter
+from logging import getLogger as logging_getLogger
+
 
 pwnlib.log.getLogger("pwnlib").setLevel("WARNING")
 
 
+def configure_logger():
+    pwnlog = logging_getLogger("pwntest")
+    if not pwnlog.handlers:
+        iso_8601 = '%Y-%m-%dT%H:%M:%S'
+        fmt = '%(asctime)s:%(levelname)s:%(name)s:%(message)s'
+        log_file = pwnlib.log.LogfileHandler()
+        log_file.setFormatter(Formatter(fmt, iso_8601))
+
+        formatter = pwnlib.log.Formatter()
+        console = pwnlib.log.Handler()
+        console.setFormatter(formatter)
+
+        pwnlog.addHandler(console)
+        pwnlog.addHandler(log_file)
+
+
 class PwnTest:
-    def __init__(self, binary_path: str = "", ip: str = "", port: int = 0, ssh=None) -> None:
+    def __init__(self, ip: str = "", port: int = 0, binary_path="", ssh=None) -> None:
         self.remote_ip: str = ip
         self.remote_port: int = port
         self.binary_path: str = binary_path
         self.remote_test: bool = False
         self.local_test: bool = False
 
+        configure_logger()
         self.log = pwnlib.log.getLogger("pwntest")
-        self.log.setLevel("INFO")
+        self.log.setLevel("DEBUG")
 
         # TODO: Update this to something more elegant,
         #       where these are only initialised the first time they're used
@@ -42,7 +66,7 @@ class PwnTest:
             if "password" not in ssh and "keyfile" not in ssh:
                 raise ValueError("SSH Password or Keyfile not provided")
 
-            self.SSHTest = SSHTest(binary_path=binary_path, ip=ip, port=port, ssh=ssh)
+            self.SSHTest = SSHTest(binary_path="", ip=ip, port=port, ssh=ssh)
 
         # if binary_path:
         #     if not os.path.isfile(binary_path):
@@ -95,3 +119,4 @@ class PwnTest:
             conn = None
 
         return conn
+
