@@ -35,6 +35,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def __del__(self):
         """
         Destructor. Terminate the gdb process and remove it from the global list of gdb processes.
+
         :return:
         """
         current_pid: int = self.get_pid()
@@ -43,14 +44,19 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
     @staticmethod
     def cleanup():
+        """
+        Cleanup function. Called when the program exits. Terminates all gdb processes.
+
+        :return:
+        """
         if len(gdb_procs) > 0:
-            log.debug(f"Cleaning up {len(gdb_procs)} gdb processes")
             for process in gdb_procs:
                 gdb_procs[process].terminate()
 
     def is_running(self) -> bool:
         """
         Check if the debugged program is running.
+
         :return: True if running, False if not
         """
         # running_threads = [t.is_running() for t in self.selected_inferior().threads()]
@@ -63,6 +69,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def get_pid(self) -> int:
         """
         Get the PID of the debugged process.
+
         :return: PID of current debugged process. Returns 0 if no process is running.
         """
         pid: int = self.inferiors()[0].pid
@@ -75,6 +82,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def get_section_base(current_pid: int, section_name: str) -> int:
         """
         Get the base address of a section. Should match the name from /proc/<pid>/maps
+
         :param current_pid: Process ID of file to read from
         :param section_name: Name of section to get base address of
         :return: Base address of section or -1 if not found
@@ -107,6 +115,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def get_binary_base(self) -> int:
         """
         Get the base address of the binary currently being debugged
+
         :return: Base address of binary. -1 if not found
         """
         current_pid: int = self.get_pid()
@@ -122,6 +131,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def address_from_symbol(self, symbol: str) -> int:
         """
         Get the address of a symbol
+
         :param symbol: Symbol to get address of
         :return: Address of symbol
         """
@@ -140,6 +150,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def read_mem(self, addr: int, length: int):
         """
         Read memory from a given address
+
         :param addr: Address to read from
         :param length: Number of bytes to read
         :return: gdb.Value object of the value
@@ -153,6 +164,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def read_reg(self, register: str):
         """
         Read value from a register. Wrapper around newest_frame().read_register()
+
         :param register: Register to read from
         :return: gdb.Value object of the value.
         """
@@ -172,6 +184,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def read_regs(self, registers: dict):
         """
         Read value from multiple register. Wrapper around newest_frame().read_register(). Return a dict of register: gdb.Value
+
         :param registers:
         :return:
         """
@@ -188,6 +201,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def write_reg(self, register: str, value: int) -> bool:
         """
         Write a value to a register
+
         :param register: Register to write to
         :param value: Value to write
         :return: True if successful, False if not
@@ -213,6 +227,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def write_mem(self, address: int, value: bytes) -> bool:
         """
         Write a value to a register
+
         :param address: Register to write to
         :param value: Value to write
         :return: None
@@ -227,6 +242,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def match_reg_value(self, register: str, value: int) -> bool:
         """
         Check that the expected value of a register matches the value in memory
+
         :param register: register to check
         :param value: expected value
         :return:
@@ -240,6 +256,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     def check_regs_value(self, registers: dict) -> dict:
         """
         Checks that the expected values in a dictionary of registers match the actual values in memory.
+
         :param registers: Dictionary of register names and values to check, e.g. {"rax": 0xdeadbeef}
         :return: Dictionary of register names and values with fields matched (bool), expected (int), actual (int)
         """
@@ -262,6 +279,19 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
 
 def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None, api=False, **kwargs):
+    """
+    Identical to the gdb.debug() function, runs gdb as a subprocess rather than in a terminal window.
+
+    :param args:
+    :param gdbscript:
+    :param exe:
+    :param ssh:
+    :param env:
+    :param sysroot:
+    :param api:
+    :param kwargs:
+    :return:
+    """
     if isinstance(args, six.integer_types + (pwnlib.tubes.process.process, pwnlib.tubes.ssh.ssh_channel)):
         log.error("Use gdb.attach() to debug a running process")
 
@@ -348,6 +378,7 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None,
 def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot=None, api=True):
     """
     Minor change to the gdb.attach() function, runs gdb as a subprocess rather than in a terminal window.
+
     :param target:
     :param gdbscript:
     :param exe:

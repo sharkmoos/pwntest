@@ -25,5 +25,6 @@ testpaths = [
     "examples",
 ]
 filterwarnings = [
-    "ignore:.*is deprecated:DeprecationWarning"
+    "ignore:.*is deprecated:DeprecationWarning",
+    "ignore:.*I/O operation on closed file:ResourceWarning"
 ]

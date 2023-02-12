@@ -9,7 +9,7 @@ import pwntest
 
 ip, port = "127.0.0.1", 9003
 
-tester = pwntest.PwnTest("examples/ssh_priv_esc/test_ssh.py", ip, port, ssh={
+tester = pwntest.PwnTest(ip=ip, port=port, ssh={
         "user": "david",
         "password": "foobar",
         "port": port,
@@ -31,3 +31,4 @@ def test_ssh_base_user():
     assert tester.SSHTest.assert_current_user("david")
 
 
+test_ssh_base_user()
