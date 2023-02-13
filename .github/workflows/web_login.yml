@@ -42,8 +42,3 @@ jobs:
         env:
           CONTAINER_HOST: localhost
 
-
-      - name: Clean up Docker container
-        uses: docker/stop-action@v1
-        with:
-          image: ${{ env.IMAGE_NAME }}
