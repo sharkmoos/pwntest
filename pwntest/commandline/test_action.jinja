@@ -39,6 +39,7 @@ jobs:
 {% endif %}
       - name: Test with pytest
         run: |
+          pip3 install pytest
           {% if POETRY %}
           poetry run pytest {{ CHALLENGE_PATH }}{% else %}pytest {{ CHALLENGE_PATH }}
           {% endif %}
