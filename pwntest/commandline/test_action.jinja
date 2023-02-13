@@ -4,7 +4,7 @@ name: {{ TEST_CASE_NAME }}
 on:
   pull_request:
     branches: [ "master" ]
-    paths: [ "{{ CHALLENGE_PATH }}/**" ]
+    paths: [ "{{ CHALLENGE_PATH }}**" ]
 
 jobs:
   build_and_test:
