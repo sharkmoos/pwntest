@@ -2,33 +2,33 @@
 
 pwn_remote_flag:
   author: sharkmoos
-  directory: examples/pwn_remote_flag/
+  directory: examples/pwn_automation/
   docker:
-    docker_path: examples/pwn_remote_flag/challenge
+    docker_path: examples/pwn_automation/challenge
     ports:
       - 1337:1337
       - 1338:1338
 
 pwn_remote_shell:
   author: sharkmoos
-  directory: examples/pwn_remote_shell/
+  directory: examples/pwn_automation/
   docker:
-    docker_path: examples/pwn_remote_shell/challenge
+    docker_path: examples/pwn_automation/challenge
     ports:
       - 1339:1339
 
 ssh_priv_esc:
   author: sharkmoos
-  directory: examples/ssh_priv_esc/
+  directory: examples/ssh_automation/
   docker:
-    docker_path: examples/ssh_priv_esc/challenge
+    docker_path: examples/ssh_automation/challenge
     ports:
       - 1340:1340
 
 web_login:
   author: sharkmoos
-  directory: examples/web_login/
+  directory: examples/web_automation/
   docker:
-    docker_path: examples/web_login/challenge
+    docker_path: examples/web_automation/challenge
     ports:
       - 1341:1341
