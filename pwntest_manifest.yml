@@ -6,7 +6,9 @@ pwn_remote_flag:
   docker:
     docker_path: examples/pwn_automation/challenge
     ports:
-      - 9001:9999
+      - 9001:9999#
+  requirements:
+    - ./poetry.lock
 
 pwn_remote_shell:
   author: sharkmoos
@@ -15,6 +17,8 @@ pwn_remote_shell:
     docker_path: examples/pwn_automation/challenge
     ports:
       - 1339:1339
+  requirements:
+    - ./poetry.lock
 
 ssh_priv_esc:
   author: sharkmoos
@@ -23,6 +27,8 @@ ssh_priv_esc:
     docker_path: examples/ssh_automation/challenge
     ports:
       - 9003:22
+  requirements:
+    - ./poetry.lock
 
 web_login:
   author: sharkmoos

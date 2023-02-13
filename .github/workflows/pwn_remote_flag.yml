@@ -19,19 +19,25 @@ jobs:
             cd examples/pwn_automation/challenge
             docker build -t pwn_remote_flag .
             cd -
-            docker run --rm -d  -p '9001:9999' --name pwn_remote_flag pwn_remote_flag:latest
+            docker run --rm -d  -p '9001:9999#' --name pwn_remote_flag pwn_remote_flag:latest
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: '3.10'
 
+      - name: Install Poetry and Dependencies
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          cd ['./poetry.lock']
+          poetry install
+
 
       - name: Test with pytest
         run: |
           pip3 install pytest
-          pytest examples/pwn_automation/
           
+          poetry run pytest examples/pwn_automation/
         env:
           CONTAINER_HOST: localhost
 

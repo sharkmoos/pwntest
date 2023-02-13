@@ -46,7 +46,7 @@ class ActionBuilder:
 
 
         if "requirements" in challenge_data:
-            if not "poetry" in challenge_data.get("requirements"):
+            if "poetry" not in challenge_data.get("requirements")[0]:
                 reqs: list = []
                 if os.path.isfile(challenge_data.get("requirements")[0]):
                     req_file = challenge_data.get("requirements")[0]
