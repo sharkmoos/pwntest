@@ -14,15 +14,12 @@ jobs:
         uses: actions/checkout@v2
 
 
-      - name: Build Docker Image
+      - name: Build and Run Docker Image
         run: |
             cd examples/web_automation/challenge
             docker build -t web_login .
             cd -
-
-      - name: Run Docker container
-        run: |
-            docker run --rm -d 1341:1341 --name web_login web_login
+            docker run --rm -d 1341:1341 --name web_login web_login:latest
 
       - name: Run Python scripts
         uses: actions/setup-python@v4

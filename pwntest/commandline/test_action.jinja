@@ -14,15 +14,12 @@ jobs:
         uses: actions/checkout@v2
 
 {% if DOCKER %}
-      - name: Build Docker Image
+      - name: Build and Run Docker Image
         run: |
             cd {{ TEST_CASE_NAME_PATH }}
             docker build -t {{TEST_CASE_NAME}} .
             cd -
-
-      - name: Run Docker container
-        run: |
-            docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} {{TEST_CASE_NAME}}
+            docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} {{TEST_CASE_NAME}}:latest
 {% endif %}
       - name: Run Python scripts
         uses: actions/setup-python@v4
