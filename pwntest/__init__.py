@@ -17,7 +17,7 @@ from pwntest.modules.web import WebAutomation
 from logging import Formatter
 from logging import getLogger as logging_getLogger
 
-pwnlib.log.getLogger("pwnlib").setLevel("WARNING")
+
 
 
 class PwnTest:
@@ -26,11 +26,11 @@ class PwnTest:
     """
     log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
-    def __init__(self, ip: str = "", port: int = 0, binary_path: str = "", ssh: dict = None) -> None:
+    def __init__(self, remote_target: str = "", port: int = 0, binary_path: str = "", ssh: dict = None) -> None:
         """
         Initialise the PwnTest class.
 
-        :param ip: IP address or hostname of the remote host
+        :param remote_target: IP address or hostname of the remote host
         :param port: The port the challenge is exposed on.
         :param ssh: A dictionary containing the following keys:
             user: The username to use for SSH
@@ -39,24 +39,25 @@ class PwnTest:
             - keyfile: The path to the SSH keyfile to use
             - port: The port to use for SSH (default: 22)
         """
-        self.remote_ip: str = ip
+        self.remote_ip: str = remote_target
         self.remote_port: int = port
 
         configure_logger()
         self.log.setLevel("DEBUG")
+        pwnlib.log.getLogger("pwnlib").setLevel("WARNING")
 
         # TODO: Update this to something more elegant,
         #       where these are only initialised the first time they're used or something
         # Perhaps could use "isinstance" to check if the object has been initialised in the call function,
         # and if not initialise it.
-        self.PwnAutomation: PwnAutomation = PwnAutomation(binary_path=binary_path, ip=ip, port=port, ssh=ssh)
-        self.WebAutomation: WebAutomation = WebAutomation(rhost=ip, rport=port, lhost="127.0.0.1", lport=1337)
+        self.PwnAutomation: PwnAutomation = PwnAutomation(binary_path=binary_path, ip=remote_target, port=port, ssh=ssh)
+        self.WebAutomation: WebAutomation = WebAutomation(rhost=remote_target, rport=port, lhost="127.0.0.1", lport=1337)
         self.SSHAutomation: SSHAutomation
 
         if ssh:
-            self.SSHAutomation = SSHAutomation(ip=ip, port=port, ssh=ssh)
+            self.SSHAutomation = SSHAutomation(ip=remote_target, port=port, ssh=ssh)
 
-    def assert_priv_esc(self, user: str, conn, priv_script: str) -> bool:
+    def assert_priv_esc(self, user: str, priv_script: str, conn) -> bool:
         """
         Asserts that a priv esc script can be used to escalate privileges on a host. Works with most of the pwnlib tubes.
 
@@ -80,7 +81,7 @@ class PwnTest:
 
         # upload the priv esc script to the remote host using the pwnlib.ssh module
         elif isinstance(conn, pwnlib.tubes.ssh.ssh):
-            if not self.SSHTest.ssh:
+            if not self.SSHAutomation.ssh:
                 self.log.warning("SSH connection not established. Skipping priv esc test.")
                 return False
 
@@ -89,9 +90,9 @@ class PwnTest:
                 return False
 
             conn.upload(priv_script, f"/tmp/{file_name}")
-            self.SSHTest.assert_file_exists("/tmp/{file_name}")
-            proc = conn.run("sh")
-            proc.sendline("chmod +x /tmp/priv_esc")
+            self.SSHAutomation.assert_file_exists(f"/tmp/{file_name}")
+            proc = conn.run(b"sh")
+            proc.sendline(f"chmod +x /tmp/{file_name}".encode())
 
         # upload the file by encoding it in base64 and decoding it on the remote host
         # TODO: Test this works for huge files
@@ -101,17 +102,19 @@ class PwnTest:
                 encoded_data = base64.b64encode(data)
                 conn.sendline(b"echo -ne '" + encoded_data + f"' | base64 -d > /tmp/{file_name}".encode())
                 proc = conn
-                proc.sendline("chmod +x /tmp/priv_esc")
+                proc.sendline(f"chmod +x /tmp/{file_name}".encode())
 
         else:
             self.log.error("Unsupported connection type")
             return False
 
-        proc.sendline("/tmp/priv_esc")
-        proc.sendline("id")
+        proc.sendline(f"/tmp/{file_name}".encode())
+        proc.clean(timeout=1)
+        proc.sendline(b"id")
         output = proc.clean(timeout=1)
+        print(output)
 
-        if user in output:
+        if (user.encode() if isinstance(user, str) else user) in output:
             self.log.debug("Priv esc seemed to work")
             return True
         else:
@@ -347,11 +350,11 @@ class SSHAutomation:
             raise ValueError("SSH Password or Keyfile not provided")
 
         elif password and not keyfile:
-            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, password=password, port=port, )
+            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, password=password, port=port, ignore_config=True )
         elif not password and keyfile:
-            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, keyfile=keyfile, port=port, level="WARNING")
+            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, keyfile=keyfile, port=port, level="WARNING", ignore_config=True)
         elif password and keyfile:
-            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, password=password, keyfile=keyfile, port=port, )
+            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, password=password, keyfile=keyfile, port=port, ignore_config=True)
         else:
             raise ValueError("Something went wrong with SSH Authentication")
 

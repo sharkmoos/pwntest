@@ -8,8 +8,20 @@ import pwnlib.tubes
 
 
 class WebAutomation:
+    """
+    WebAutomation class for automating web application testing.
+    """
 
     def __init__(self, rhost: str, rport: int, lhost: str, lport: int) -> None:
+        """
+        Initialise the WebAutomation class. Inherits the relevant PwnTestBase attributes.
+
+        :param rhost: The target IP address
+        :param rport: The target port
+        :param lhost: The local IP address
+        :param lport: The local port
+        """
+
         self.base_url = None
         self.log = pwnlib.log.getLogger("pwntest")
         self.timeout: int = 2
@@ -22,15 +34,34 @@ class WebAutomation:
 
     def set_target(self, base_url: str) -> None:
         """
-        Set a base target for the testing. This is useful if the all the testing runs on a specific vhost or something
+        Set a base target for the testing. This is useful if the all the testing runs on a specific vhost or something.
+        Currently, this is not done automatically as it would be difficult to decide on a sensible default.
 
         Parameters:
             base_url: Base URL to use for testing
+
+        **Example:**
+
+        >>> import pwntest
+        >>> tester = pwntest.PwnTest(remote_target="example.com", port=80)
+        >>> tester.WebAutomation.base_url
+        None
+        >>> tester.WebAutomation.set_target("http://example.com")
+        >>> tester.WebAutomation.base_url
+        'http://example.com'
         """
         self.base_url = base_url
 
+    def get_session(self) -> requests.sessions.Session:
+        """
+        Get the current session object
+
+        :return: Current session object
+        """
+        return self.session
+
     @staticmethod
-    def is_full_url(self, text) -> bool:
+    def is_full_url(text) -> bool:
         """
         Check if a string is a full URL
 
@@ -46,6 +77,19 @@ class WebAutomation:
             return True
         return False
 
+    def make_full_url(self, path) -> str:
+        """
+        Make a full URL from a path. If the url is already a full url then return the url
+
+        :param path: Path to join with the base url
+        :return: Base joined with the path
+        """
+        if self.is_full_url(path):
+            return path
+        if self.base_url is None:
+            raise ValueError("Base URL not set. Please set a base URL with set_target() or pass a full URL")
+        return parse_url(self.base_url).join(path)
+
     @staticmethod
     def strip_url_path(url) -> str:
         """
@@ -56,29 +100,27 @@ class WebAutomation:
         """
         return parse_url(url).path
 
-    def assert_string_on_page(self, url: str, string: str) -> bool:
+    def assert_string_on_page(self, url: str, string: str, session: bool = False) -> bool:
         """
         Check if a string is on a page.
 
         :param url: URL to check
         :param string: String to check for
         :return: True if string is on page, False otherwise.
+        :param session: If session is true then request using the internal session object
         """
-        passed: bool = False
-
         try:
-            response: requests.models.Response = self.session.get(url, timeout=self.timeout)
-            if string not in response.text:
-                self.log.debug(f"Could not find string '{string}' on page: {url}")
-            else:
-                self.log.debug(f"String '{string}' found on page: {url}")
-                passed = True
+            r = self.session if session else requests
+            if not self.is_full_url(url):
+                url = self.make_full_url(url)
+            response: requests.models.Response = r.get(url, timeout=self.timeout)
+            return string in response.text
         except requests.exceptions.Timeout:
             self.log.warning("Request timed out.")
 
-        return passed
+        return False
 
-    def assert_redirect(self, url, session: bool = False):
+    def assert_redirect(self, url, session: bool = False) -> bool:
         """
         Returns true if the response to the request is a redirect
 
@@ -87,22 +129,21 @@ class WebAutomation:
         :return:
         """
         r = self.session if session else requests
+
+        if not self.is_full_url(url):
+            url = self.make_full_url(url)
+
         response = r.get(url)
 
         # if there were any janky methods of redirecting, they should be caught by the history tracking
-        return response.is_redirect and len(response.history) == 0
+        return response.is_redirect or len(response.history) != 0
 
     def assert_page_not_found(self, request_method, url: str) -> bool:
         if not callable(request_method):
             raise TypeError("'request_method' must be callable")
 
         if not self.is_full_url(url):
-            if self.base_url is None:
-                self.log.error("Base URL not set. Please set a base URL with set_target() or pass a full URL")
-                return False
-            else:
-                self.log.debug(f"URL '{url}' is not a full URL. Joining with base URL: {self.base_url}")
-                url = parse_url(self.base_url).join(url)
+            url = self.make_full_url(url)
 
         response = request_method(url)
         return response.status_code == 404
@@ -129,6 +170,8 @@ class WebAutomation:
                 return False
 
         for page in pages:
+            if not self.is_full_url(page):
+                page = self.make_full_url(page)
             if not self.assert_page_not_found(r.get, page):
                 return False
 
@@ -155,6 +198,8 @@ class WebAutomation:
                 return False
 
         for page in pages:
+            if not self.is_full_url(page):
+                page = self.make_full_url(page)
             if not self.assert_page_not_found(r.post, page):
                 return False
 
@@ -177,17 +222,19 @@ class WebAutomation:
         """
         r = self.session if session else requests
 
-        for req in pages.keys():
-            match req["type"]:
+        for page in pages.keys():
+            if not self.is_full_url(page):
+                page = self.make_full_url(page)
+            match page["type"]:
                 case "POST":
-                    response = r.post(url=req)
+                    response = r.post(url=page)
                 case "GET":
-                    response = r.get(url=req)
+                    response = r.get(url=page)
                 case _:
-                    self.log.warning(f"Request type '{req['type']}' not supported. Returning False")
+                    self.log.warning(f"Request type '{page['type']}' not supported. Returning False")
                     return False
 
-            if response.status_code == req["status_code"]:
+            if response.status_code == page["status_code"]:
                 return False
 
         return True
@@ -203,6 +250,8 @@ class WebAutomation:
         """
         element_data: str = ""
         try:
+            if not self.is_full_url(url):
+                url = self.make_full_url(url)
             response: requests.models.Response = self.session.get(url, timeout=self.timeout)
             soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
             element_data = soup.find(id=element).text

@@ -29,6 +29,12 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
     # def __init__(self, conn: rpyc.core.protocol.Connection, binary_path: str):
     def __init__(self, conn, binary_path: str):
+        """
+        Constructor. Starts a gdb process and adds it to the global list of gdb processes.
+
+        :param conn:
+        :param binary_path:
+        """
         super().__init__(conn)
         self.binary_path: str = binary_path
 
@@ -38,9 +44,13 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return:
         """
-        current_pid: int = self.get_pid()
-        gdb_procs.pop(current_pid)
-        self.quit()
+        try:
+            current_pid: int = self.get_pid()
+            gdb_procs.pop(current_pid)
+            self.quit()
+        except EOFError:
+            # gdb process has already terminated
+            pass
 
     @staticmethod
     def cleanup():
@@ -51,7 +61,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         """
         if len(gdb_procs) > 0:
             for process in gdb_procs:
-                gdb_procs[process].terminate()
+                try:
+                    gdb_procs[process].terminate()
+                except EOFError:
+                    pass
 
     def is_running(self) -> bool:
         """

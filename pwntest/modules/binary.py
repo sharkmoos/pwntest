@@ -96,7 +96,7 @@ class PwnAutomation:
             output.close()
 
         elif flag and flag_path:
-            passed = flag in output if isinstance(flag, str) else flag.encode() in output
+            passed = flag.encode() in output if isinstance(flag, str) else flag in output
         else:
             raise ValueError("Must supply either (flag and flag_path) or neither.")
 
