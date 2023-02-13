@@ -1,5 +1,5 @@
-# Challenge Author: {{author}}
-name: {{ TEST_CASE_NAME }}
+# Challenge Author: 
+name: pwn_remote_flag
 
 on:
   pull_request:
@@ -7,19 +7,19 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: {{ RUNS_ON }}
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-{% if DOCKER %}
+
       - name: Build and Run Docker Image
         run: |
-            cd {{ TEST_CASE_NAME_PATH }}
-            docker build -t {{TEST_CASE_NAME}} .
+            cd examples/pwn_automation/challenge
+            docker build -t pwn_remote_flag .
             cd -
-            docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} {{TEST_CASE_NAME}}:latest
-{% endif %}
+            docker run --rm -d  -p 1337:1337 -p 1338:1338 --name pwn_remote_flag pwn_remote_flag:latest
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
@@ -31,14 +31,13 @@ jobs:
 
       - name: Test with pytest
         run: |
-          poetry run pytest {{ CHALLENGE_PATH }}
+          poetry run pytest examples/pwn_automation/
         env:
           CONTAINER_HOST: localhost
 
-{% if DOCKER %}
+
       - name: Clean up Docker container
         if: always() # need to run even if previous steps fail
         run: |
-            docker stop {{TEST_CASE_NAME}}
-{% endif %}
+            docker stop pwn_remote_flag
 

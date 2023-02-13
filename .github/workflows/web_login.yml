@@ -1,4 +1,4 @@
-# Challenge Author:
+# Challenge Author: 
 name: web_login
 
 on:
@@ -18,7 +18,7 @@ jobs:
             cd examples/web_automation/challenge
             docker build -t web_login .
             cd -
-            docker run --rm -d  -p 1341:1341 --name web_login web_login:latest
+            docker run --rm -d  -p 3000:3000 --name web_login web_login:latest
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
