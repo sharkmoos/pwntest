@@ -2,7 +2,7 @@ import sys
 import pytest
 import os
 
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
+sys.path.append(os.getcwd())
 import pwntest
 
 from examples.web_automation.exploit import main as exploit_code
