@@ -17,7 +17,7 @@ jobs:
             cd examples/web_automation/challenge
             docker build -t web_login .
             cd -
-            docker run --rm -d  -p 1341:1341 web_login:latest
+            docker run --rm -d  -p 3000:3000 web_login:latest
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
@@ -32,9 +32,11 @@ jobs:
           poetry run pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
-#      - name: Clean up Docker container
-#        run: |
-#            docker stop web_login
+
+      - name: Clean up Docker container
+        if: always()
+        run: |
+            docker stop web_login
 
 
 
