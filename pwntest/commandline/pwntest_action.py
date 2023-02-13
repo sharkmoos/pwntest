@@ -60,7 +60,7 @@ class ActionBuilder:
                 challenge_reqs: str = " " + " ".join(reqs)
             else:
                 uses_poetry = True
-                challenge_reqs = challenge_data.get("requirements")
+                challenge_reqs = challenge_data.get("requirements")[0]
 
         if "docker" in challenge_data:
             ports: str = challenge_data.get("docker").get("ports")
