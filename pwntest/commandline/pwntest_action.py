@@ -5,6 +5,7 @@ import datetime
 import jinja2
 import os
 
+import pathlib
 from ruamel.yaml import YAML
 
 import pwnlib.log
@@ -60,7 +61,10 @@ class ActionBuilder:
                 challenge_reqs: str = " " + " ".join(reqs)
             else:
                 uses_poetry = True
-                challenge_reqs = challenge_data.get("requirements")[0]
+                # get path to directory from path to file
+                challenge_reqs = pathlib.Path(challenge_data.get("requirements")[0]).parent
+
+
 
         if "docker" in challenge_data:
             ports: str = challenge_data.get("docker").get("ports")
