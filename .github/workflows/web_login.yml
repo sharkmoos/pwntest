@@ -18,30 +18,22 @@ jobs:
             docker build -t web_login .
             cd -
             docker run --rm -d  -p 1341:1341 web_login:latest
-  test:
-    needs: build
-    runs-on: self-hosted
-    container:
-      image: python:3.10
-    steps:
       - name: Install dependencies
+        with:
+          python-version: '3.10'
         run: |
-          # check if python 3 is installed, install if not else skip
-          python3 --version || apt-get install python3
-          python3 -m pip install --upgrade pip
-          pip install pytest
           curl -sSL https://install.python-poetry.org | python3 -
           /github/home/.local/bin/poetry install
+
       - name: Test with pytest
         run: |
           /github/home/.local/bin/poetry run pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
-
-
-      - name: Clean up Docker container
-        run: |
-            docker stop web_login
+        uses: actions/setup-python@v3
+#      - name: Clean up Docker container
+#        run: |
+#            docker stop web_login
 
 
 
