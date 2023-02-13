@@ -9,7 +9,7 @@ WORKDIR /home/ctf
 ARG COMPILE_CHALLENGE
 ENV COMPILE=${COMPILE_CHALLENGE}
 
-COPY ./bin/ /home/ctf/
+COPY ./bin/* /home/ctf/
 RUN gcc challenge.c -no-pie -fno-stack-protector -o challenge
 
 FROM ubuntu:20.04
