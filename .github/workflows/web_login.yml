@@ -36,7 +36,7 @@ jobs:
       - name: Clean up Docker container
         if: always()
         run: |
-            docker stop web_login
+            docker container rm -f $(docker ps -qa)
 
 
 
