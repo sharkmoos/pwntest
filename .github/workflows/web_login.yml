@@ -1,4 +1,4 @@
-# Challenge Author:
+# Challenge Author: 
 name: web_login
 
 on:
@@ -24,14 +24,14 @@ jobs:
       - name: Run Python scripts
         uses: actions/setup-python@v4
         with:
-            python-version: '3.x'
+            python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install pytest
       - name: Test with pytest
         run: |
-          pytest examples/web_automation/challenge
+          pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
 
@@ -39,4 +39,3 @@ jobs:
       - name: Clean up Docker container
         run: |
             docker stop web_login
-

@@ -31,7 +31,7 @@ jobs:
           pip install pytest
       - name: Test with pytest
         run: |
-          pytest {{ TEST_CASE_NAME_PATH }}
+          pytest {{ CHALLENGE_PATH }}
         env:
           CONTAINER_HOST: localhost
 

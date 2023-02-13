@@ -69,6 +69,7 @@ class ActionBuilder:
                         "TEST_CASE_NAME": challenge_name,
                         # "PORT": challenge_ports,
                         "TEST_CASE_NAME_PATH": docker_path,
+                        "CHALLENGE_PATH": challenge_path,
                         "DOCKER": is_docker,
                         "RUNS_ON": runs_on,
                         "INLINE_PORTS": inline_ports

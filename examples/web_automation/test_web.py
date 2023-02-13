@@ -5,7 +5,7 @@ import os
 sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
 import pwntest
 
-from examples.web_login.exploit import main as exploit_code
+from examples.web_automation.exploit import main as exploit_code
 
 rhost, rport = "127.0.0.1", 9004
 lhost, lport = "127.0.0.1", 4444
