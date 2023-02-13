@@ -39,3 +39,4 @@ jobs:
       - name: Clean up Docker container
         run: |
             docker stop web_login
+
