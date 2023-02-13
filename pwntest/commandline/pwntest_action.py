@@ -41,7 +41,7 @@ class ActionBuilder:
 
         if "docker" in challenge_data:
             ports = challenge_data.get("docker").get("ports")
-            inline_ports = " -p ".join(ports)
+            inline_ports = " -p " + " -p ".join(ports)
 
             docker_path = challenge_data.get("docker").get("docker_path")
             is_docker = True
