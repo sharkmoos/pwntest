@@ -18,13 +18,9 @@ jobs:
             docker build -t web_login .
             cd -
             docker run --rm -d  -p 1341:1341 web_login:latest
-  test:
-    needs: build
-    runs-on: self-hosted
-    container:
-      image: python:3.10
-    steps:
       - name: Install dependencies
+        container:
+          image: python:3.10
         run: |
           # check if python 3 is installed, install if not else skip
           python3 --version || apt-get install python3
