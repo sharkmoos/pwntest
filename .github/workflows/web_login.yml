@@ -8,7 +8,8 @@ on:
 jobs:
   build_and_test:
     runs-on: self-hosted
-
+    container:
+      image: ubuntu:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -21,19 +22,19 @@ jobs:
             cd -
             docker run --rm -d  -p 1341:1341 --name web_login web_login:latest
 
-      - name: Run Python scripts
-        uses: actions/setup-python@v4
-        with:
-            python-version: 3.x
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install pytest poetry
-          curl -sSL https://install.python-poetry.org | python3 -
-          poetry install
+#      - name: Run Python scripts
+#        uses: actions/setup-python@v4
+#        with:
+#            python-version: 3.x
+#      - name: Install dependencies
+#        run: |
+#          python3 -m pip install --upgrade pip
+#          pip install pytest poetry
+#          curl -sSL https://install.python-poetry.org | python3 -
+#          poetry install
       - name: Test with pytest
         run: |
-          python3 -m pytest examples/web_automation/
+          poetry  pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
 
