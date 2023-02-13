@@ -32,3 +32,5 @@ web_login:
     docker_path: examples/web_automation/challenge
     ports:
       - 1341:1341
+
+
