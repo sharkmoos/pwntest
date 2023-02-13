@@ -33,6 +33,7 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Test with pytest
         run: |
+          /github/home/.local/bin/poetry install
           /github/home/.local/bin/poetry pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
