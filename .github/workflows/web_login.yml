@@ -18,6 +18,7 @@ jobs:
         run: |
             cd examples/web_automation/challenge
             docker build -t web_login .
+            cd -
 
       - name: Run Docker container
         run: |
