@@ -25,7 +25,7 @@ jobs:
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          /github/home/.local/bin/poetry install
+          poetry install
 
       - name: Test with pytest
         run: |
