@@ -18,6 +18,7 @@ jobs:
         run: |
             cd {{ TEST_CASE_NAME_PATH }}
             docker build -t {{TEST_CASE_NAME}} .
+            cd -
 
       - name: Run Docker container
         run: |
