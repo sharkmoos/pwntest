@@ -6,8 +6,8 @@ pwn_remote_flag:
   docker:
     docker_path: examples/pwn_remote_flag/challenge
     ports:
-      - 1337
-      - 1338
+      - 1337:1337
+      - 1338:1338
 
 pwn_remote_shell:
   author: sharkmoos
@@ -15,7 +15,7 @@ pwn_remote_shell:
   docker:
     docker_path: examples/pwn_remote_shell/challenge
     ports:
-      - 1337
+      - 1339:1339
 
 ssh_priv_esc:
   author: sharkmoos
@@ -23,7 +23,7 @@ ssh_priv_esc:
   docker:
     docker_path: examples/ssh_priv_esc/challenge
     ports:
-      - 1337
+      - 1340:1340
 
 web_login:
   author: sharkmoos
@@ -31,4 +31,4 @@ web_login:
   docker:
     docker_path: examples/web_login/challenge
     ports:
-      - 1337
+      - 1341:1341

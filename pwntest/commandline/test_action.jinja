@@ -15,17 +15,12 @@ jobs:
 
 {% if DOCKER %}
       - name: Build Docker Image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          tags: {{TEST_CASE_NAME}}
+        run: |
+            docker build -t {{TEST_CASE_NAME}} -f {{ TEST_CASE_NAME_PATH }}/Dockerfile .
 
       - name: Run Docker container
-        uses: docker/run-action@v2
-        with:
-          image: {{TEST_CASE_NAME}}
-          ports:
-            {{ PORTS }}
+        run: |
+            docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} {{TEST_CASE_NAME}}
 {% endif %}
       - name: Run Python scripts
         uses: actions/setup-python@v4
@@ -43,7 +38,6 @@ jobs:
 
 {% if DOCKER %}
       - name: Clean up Docker container
-        uses: docker/stop-action@v1
-        with:
-          image: {% raw %}${{ env.IMAGE_NAME }}{% endraw %}
+        run: |
+            docker stop {{TEST_CASE_NAME}}
 {% endif %}

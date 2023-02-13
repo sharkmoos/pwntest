@@ -40,18 +40,21 @@ class ActionBuilder:
         challenge_path = challenge_data.get("directory")
 
         if "docker" in challenge_data:
-            challenge_port = challenge_data.get("docker").get("ports")
+            ports = challenge_data.get("docker").get("ports")
+            inline_ports = " -p ".join(ports)
+
             docker_path = challenge_data.get("docker").get("docker_path")
             is_docker = True
         else:
-            challenge_port = None
+            inline_ports = None
+            challenge_ports = None
             docker_path = None
             is_docker = False
 
         log.debug("Creating action for %s", challenge_name)
         log.debug("Author: %s", challenge_author)
         log.debug("Path: %s", challenge_path)
-        log.debug("Port: %s", challenge_port)
+        log.debug("Port: %s", inline_ports)
         log.debug("Docker Path: %s\n\n", docker_path)
 
         if "runs_on" in challenge_data:
@@ -64,10 +67,11 @@ class ActionBuilder:
                 self.template.render(
                     {
                         "TEST_CASE_NAME": challenge_name,
-                        "PORT": challenge_port,
+                        # "PORT": challenge_ports,
                         "TEST_CASE_NAME_PATH": docker_path,
                         "DOCKER": is_docker,
                         "RUNS_ON": runs_on,
+                        "INLINE_PORTS": inline_ports
                     }
                 ))
 
