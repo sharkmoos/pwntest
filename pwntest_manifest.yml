@@ -6,8 +6,7 @@ pwn_remote_flag:
   docker:
     docker_path: examples/pwn_automation/challenge
     ports:
-      - 1337:1337
-      - 1338:1338
+      - 9001:9999
 
 pwn_remote_shell:
   author: sharkmoos
@@ -23,11 +22,13 @@ ssh_priv_esc:
   docker:
     docker_path: examples/ssh_automation/challenge
     ports:
-      - 1340:1340
+      - 9003:22
 
 web_login:
   author: sharkmoos
   directory: examples/web_automation/
+  requirements:
+    - examples/web_automation/requirements.txt
   docker:
     docker_path: examples/web_automation/challenge
     ports:

@@ -1,10 +1,10 @@
 # Challenge Author: 
-name: web_login
+name: pwn_remote_flag
 
 on:
   pull_request:
     branches: [ "master" ]
-    paths: [ "examples/web_automation//**" ]
+    paths: [ "examples/pwn_automation//**" ]
 
 jobs:
   build_and_test:
@@ -16,10 +16,10 @@ jobs:
 
       - name: Build and Run Docker Image
         run: |
-            cd examples/web_automation/challenge
-            docker build -t web_login .
+            cd examples/pwn_automation/challenge
+            docker build -t pwn_remote_flag .
             cd -
-            docker run --rm -d  -p '9004:3000' --name web_login web_login:latest
+            docker run --rm -d  -p '9001:9999' --name pwn_remote_flag pwn_remote_flag:latest
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
@@ -27,13 +27,9 @@ jobs:
           python-version: '3.10'
 
 
-      - name: Install Dependencies
-        run: |
-          pip install  pwntools pytest
-
       - name: Test with pytest
         run: |
-          pytest examples/web_automation/
+          pytest examples/pwn_automation/
           
         env:
           CONTAINER_HOST: localhost
@@ -41,5 +37,5 @@ jobs:
       - name: Clean up Docker container
         if: always() # need to run even if previous steps fail
         run: |
-            docker stop web_login
+            docker stop pwn_remote_flag
 
