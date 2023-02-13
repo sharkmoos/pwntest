@@ -31,10 +31,10 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install pytest
           curl -sSL https://install.python-poetry.org | python3 -
+          /github/home/.local/bin/poetry install
       - name: Test with pytest
         run: |
-          /github/home/.local/bin/poetry install
-          /github/home/.local/bin/poetry pytest examples/web_automation/
+          /github/home/.local/bin/poetry run pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
 
