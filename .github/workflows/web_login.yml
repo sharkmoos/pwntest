@@ -8,21 +8,19 @@ on:
 jobs:
   build_and_test:
     runs-on: self-hosted
-    container:
-      image: ubuntu:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-
       - name: Build and Run Docker Image
         run: |
-            apt update && apt install -y docker.io
             cd examples/web_automation/challenge
             docker build -t web_login .
             cd -
             docker run --rm -d  -p 1341:1341 --name web_login web_login:latest
-
+    # run the test things inside a container
+    container:
+    image: ubuntu:latest
       - name: Run Python scripts
         uses: actions/setup-python@v4
         with:
@@ -43,6 +41,7 @@ jobs:
       - name: Clean up Docker container
         run: |
             docker stop web_login
+
 
 
 
