@@ -1,4 +1,4 @@
-# Challenge Author:
+# Challenge Author: 
 name: web_login
 
 on:
@@ -6,41 +6,38 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build_and_test:
     runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
 
       - name: Build and Run Docker Image
         run: |
             cd examples/web_automation/challenge
             docker build -t web_login .
             cd -
-            docker run --rm -d  -p "9004:3000" web_login:latest
+            docker run --rm -d  -p 1341:1341 --name web_login web_login:latest
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: '3.10'
-      - name: Install Poetry
+      - name: Install Poetry and Dependencies
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           poetry install
 
       - name: Test with pytest
         run: |
-          poetry run pytest examples/web_automation/
+          pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
 
+
       - name: Clean up Docker container
-        if: always()
+        if: always() # need to run even if previous steps fail
         run: |
-            docker container rm -f $(docker ps -qa)
-
-
-
-
-
-
+            docker stop web_login
 

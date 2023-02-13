@@ -8,7 +8,6 @@ on:
 jobs:
   build_and_test:
     runs-on: {{ RUNS_ON }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -21,16 +20,15 @@ jobs:
             cd -
             docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} {{TEST_CASE_NAME}}:latest
 {% endif %}
-      - name: Run Python scripts
-        uses: actions/setup-python@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
         with:
-            python-version: 3.x
-      - name: Install dependencies
+          python-version: '3.10'
+      - name: Install Poetry and Dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          pip install pytest poetry
           curl -sSL https://install.python-poetry.org | python3 -
           poetry install
+
       - name: Test with pytest
         run: |
           pytest {{ CHALLENGE_PATH }}
@@ -39,6 +37,7 @@ jobs:
 
 {% if DOCKER %}
       - name: Clean up Docker container
+        if: always() # need to run even if previous steps fail
         run: |
             docker stop {{TEST_CASE_NAME}}
 {% endif %}
