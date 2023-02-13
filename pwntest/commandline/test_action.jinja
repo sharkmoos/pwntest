@@ -16,6 +16,7 @@ jobs:
 {% if DOCKER %}
       - name: Build Docker Image
         run: |
+            cd {{ TEST_CASE_NAME_PATH }}
             docker build -t {{TEST_CASE_NAME}} -f {{ TEST_CASE_NAME_PATH }}/Dockerfile .
 
       - name: Run Docker container

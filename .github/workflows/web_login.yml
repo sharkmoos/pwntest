@@ -16,6 +16,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
+            cd examples/web_automation/challenge
             docker build -t web_login -f examples/web_automation/challenge/Dockerfile .
 
       - name: Run Docker container
