@@ -1,10 +1,10 @@
-name: Pwntest Tests
+name: {{ TEST_CASE_NAME }}
 
-# on:
-#   push:
-#     branches: [ "master" ]
-#   pull_request:
-#     branches: [ "master" ]
+on:
+#  push:
+#    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
 
 jobs:
   build:
@@ -27,6 +27,5 @@ jobs:
     - name: Install dependencies
       run: poetry install
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-    - name: Run Tests
-      run: |
-        poetry run pytest -v
+    - name: Run {{ CHALLENGE_NAME }} Tests
+      run: poetry run pytest -v

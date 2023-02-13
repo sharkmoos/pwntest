@@ -2,24 +2,33 @@
 
 pwn_remote_flag:
   author: sharkmoos
-    docker: true
-      docker_path: examples/pwn_remote_flag/challenge
-    directory: examples/pwn_remote_flag/test_remote_flag.py
+  directory: examples/pwn_remote_flag/
+  docker:
+    docker_path: examples/pwn_remote_flag/challenge
+    ports:
+      - 1337
+      - 1338
 
 pwn_remote_shell:
   author: sharkmoos
-    docker: true
-      docker_path: examples/pwn_remote_shell/challenge
-    directory: examples/pwn_remote_shell/test_remote_shell.py
+  directory: examples/pwn_remote_shell/
+  docker:
+    docker_path: examples/pwn_remote_shell/challenge
+    ports:
+      - 1337
 
 ssh_priv_esc:
   author: sharkmoos
-    docker: true
-      docker_path: examples/ssh_priv_esc/challenge
-    directory: examples/ssh_priv_esc/test_ssh.py
+  directory: examples/ssh_priv_esc/
+  docker:
+    docker_path: examples/ssh_priv_esc/challenge
+    ports:
+      - 1337
 
 web_login:
   author: sharkmoos
-    docker: true
-      docker_path: examples/web_login/challenge
-    directory: examples/web_login/test_web.py
+  directory: examples/web_login/
+  docker:
+    docker_path: examples/web_login/challenge
+    ports:
+      - 1337

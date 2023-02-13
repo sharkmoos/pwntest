@@ -60,6 +60,7 @@ class PwnTest:
     def assert_priv_esc(self, user: str, priv_script: str, conn) -> bool:
         """
         Asserts that a priv esc script can be used to escalate privileges on a host. Works with most of the pwnlib tubes.
+        The priv esc script must be executable on the target machine. e.g a shell script, or elf that drops a shell etc.
 
         :param user: The elevated user
         :param conn: A pwnlib.tubes.[process|sock|ssh] tube.

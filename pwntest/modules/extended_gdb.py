@@ -23,14 +23,19 @@ gdb_procs: dict = {}
 
 class ExtendedGdb(pwnlib.gdb.Gdb):
     """
-    Extend the functionality of the pwnlib.gdb.Gdb class by providing wrappers around the gdb API.
-    GDB does not run in a terminal window, making unit tests and programmatically operating on the debugged program easier.
+    Extend the functionality of the pwnlib.gdb.Gdb class by providing wrappers
+    around the gdb API. GDB does not run in a terminal window, so running unit
+    tests and programmatically operating on the debugged program easier.
+
+    Currently, this has only been tested on single-threaded programs,
+    however it should work in the same way as just using the gdb api directly.
     """
 
     # def __init__(self, conn: rpyc.core.protocol.Connection, binary_path: str):
     def __init__(self, conn, binary_path: str):
         """
-        Constructor. Starts a gdb process and adds it to the global list of gdb processes.
+        Constructor. Starts a gdb process and adds it to the global
+        list of gdb processes.
 
         :param conn:
         :param binary_path:
@@ -38,9 +43,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         super().__init__(conn)
         self.binary_path: str = binary_path
 
-    def __del__(self):
+    def __del__(self) -> None:
         """
-        Destructor. Terminate the gdb process and remove it from the global list of gdb processes.
+        Destructor. Terminate the gdb process and remove it from the global
+         list of gdb processes.
 
         :return:
         """
@@ -53,9 +59,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
             pass
 
     @staticmethod
-    def cleanup():
+    def cleanup() -> None:
         """
-        Cleanup function. Called when the program exits. Terminates all gdb processes.
+        Cleanup function. Called when the program exits.
+        Terminates all gdb processes.
 
         :return:
         """
@@ -65,6 +72,16 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
                     gdb_procs[process].terminate()
                 except EOFError:
                     pass
+
+    def run_command(self, command: str) -> None:
+        """
+        Run a command in the gdb process.
+        No checks are performed to see if the command is or ran successfully.
+
+        :param command: Command to run
+        :return: None
+        """
+        self.execute(command)
 
     def is_running(self) -> bool:
         """
@@ -83,7 +100,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         """
         Get the PID of the debugged process.
 
-        :return: PID of current debugged process. Returns 0 if no process is running.
+        :return: PID of current debugged process.
+            Returns 0 if no process is running.
         """
         pid: int = self.inferiors()[0].pid
         log.debug(f"Current PID is {pid}")
@@ -94,7 +112,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     @staticmethod
     def get_section_base(current_pid: int, section_name: str) -> int:
         """
-        Get the base address of a section. Should match the name from /proc/<pid>/maps
+        Get the base address of a section.
+         Should match the name from /proc/<pid>/maps
 
         :param current_pid: Process ID of file to read from
         :param section_name: Name of section to get base address of
@@ -170,7 +189,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         """
 
         if self.is_running():
-            log.warning("Reading from memory while program is running can cause unexpected behaviour")
+            log.warning("Reading from memory while program is running can "
+                        "cause unexpected behaviour")
 
         return self.inferiors()[0].read_memory(addr, length)
 
@@ -183,7 +203,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         """
 
         if self.is_running():
-            log.warning("Reading from memory while program is running can cause unexpected behaviour")
+            log.warning("Reading from memory while program is running can "
+                        "cause unexpected behaviour")
 
         if not register.startswith("$"):
             register: str = "$" + register
@@ -194,19 +215,21 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         return value
 
-    def read_regs(self, registers: dict):
+    def read_regs(self, registers: list) -> dict:
         """
-        Read value from multiple register. Wrapper around newest_frame().read_register(). Return a dict of register: gdb.Value
+        Read value from multiple register.
+        Wrapper around newest_frame().read_register().
 
-        :param registers:
-        :return:
+        :param registers: List of registers to read from
+        :return: Dict of register: gdb.Value
         """
 
         if self.is_running():
-            log.warning("Reading from memory while program is running can cause unexpected behaviour")
+            log.warning("Reading from memory while program is running can "
+                        "cause unexpected behaviour")
 
         results: dict = {}
-        for register in registers.keys():
+        for register in registers:
             results[register] = self.read_reg(register)
 
         return results
@@ -261,20 +284,25 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :return:
         """
         if self.is_running():
-            log.warning("Reading from memory while program is running can cause unexpected behaviour")
+            log.warning("Reading from memory while program is running can "
+                        "cause unexpected behaviour")
 
         register_value: int = self.read_reg(register)
         return register_value == value
 
     def check_regs_value(self, registers: dict) -> dict:
         """
-        Checks that the expected values in a dictionary of registers match the actual values in memory.
+        Checks that the expected values in a dictionary of registers
+        match the actual values in memory.
 
-        :param registers: Dictionary of register names and values to check, e.g. {"rax": 0xdeadbeef}
-        :return: Dictionary of register names and values with fields matched (bool), expected (int), actual (int)
+        :param registers: Dictionary of register names and values to check,
+            e.g. {"rax": 0xdeadbeef}
+        :return: Dictionary of register names and values with fields matched
+            (bool), expected (int), actual (int)
         """
         if self.is_running():
-            log.warning("Reading from memory while program is running can cause unexpected behaviour")
+            log.warning("Reading from memory while program is running can "
+                        "cause unexpected behaviour")
 
         results: dict = {}
         for register in registers.keys():
@@ -286,12 +314,14 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
                     "actual": register_value
                 }
             except TypeError:
-                raise Exception(f"Expected value for register '{register}' is wrong type")
+                raise Exception(f"Expected value for register '{register}' "
+                                "is wrong type")
 
         return results
 
 
-def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None, api=False, **kwargs):
+def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
+               sysroot=None, api=False, **kwargs):
     """
     Identical to the gdb.debug() function, runs gdb as a subprocess rather than in a terminal window.
 
@@ -305,7 +335,8 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None,
     :param kwargs:
     :return:
     """
-    if isinstance(args, six.integer_types + (pwnlib.tubes.process.process, pwnlib.tubes.ssh.ssh_channel)):
+    if isinstance(args, six.integer_types + (pwnlib.tubes.process.process,
+                                             pwnlib.tubes.ssh.ssh_channel)):
         log.error("Use gdb.attach() to debug a running process")
 
     if isinstance(args, (bytes, six.text_type)):
@@ -335,7 +366,8 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None,
         qemu_user = pwnlib.qemu.user_path()
         sysroot = sysroot or pwnlib.qemu.ld_prefix(env=env)
         if not qemu_user:
-            log.error("Cannot debug %s binaries without appropriate QEMU binaries" % pwnlib.context.context.arch)
+            log.error("Cannot debug %s binaries without appropriate "
+                      "QEMU binaries" % pwnlib.context.context.arch)
         if pwnlib.context.context.os == 'baremetal':
             qemu_args = [qemu_user, '-S', '-gdb', 'tcp::' + str(qemu_port)]
         else:
@@ -365,7 +397,8 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None,
     gdbserver.executable = exe
 
     # Find what port we need to connect to
-    if ssh or pwnlib.context.context.native or (pwnlib.context.context.os == 'android'):
+    if ssh or pwnlib.context.context.native or (pwnlib.context.context.os
+                                                == 'android'):
         port = pwnlib.gdb._gdbserver_port(gdbserver, ssh)
     else:
         port = qemu_port
@@ -374,7 +407,8 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None,
     if not ssh and pwnlib.context.context.os == 'android':
         host = pwnlib.context.context.adb_host
 
-    tmp = test_attach((host, port), exe=exe, gdbscript=gdbscript, ssh=ssh, sysroot=sysroot, api=api)
+    tmp = test_attach((host, port), exe=exe, gdbscript=gdbscript, ssh=ssh,
+                      sysroot=sysroot, api=api)
     if api:
         _, gdb = tmp
         gdbserver.gdb = gdb
@@ -383,14 +417,17 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None, sysroot=None,
     garbage = gdbserver.recvline(timeout=1)
 
     # Some versions of gdbserver output an additional message
-    garbage2 = gdbserver.recvline_startswith(b"Remote debugging from host ", timeout=2)
+    garbage2 = gdbserver.recvline_startswith(b"Remote debugging from host ",
+                                             timeout=2)
 
     return gdbserver
 
 
-def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot=None, api=True):
+def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
+                sysroot=None, api=True):
     """
-    Minor change to the gdb.attach() function, runs gdb as a subprocess rather than in a terminal window.
+    Minor change to the gdb.attach() function, runs gdb as a subprocess
+    rather than in a terminal window.
 
     :param target:
     :param gdbscript:
@@ -402,7 +439,8 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot
     :return:
     """
     if pwnlib.context.context.noptrace:
-        log.warn_once("Skipping debug attach since pwnlib.context.context.noptrace==True")
+        log.warn_once("Skipping debug attach since "
+                      "pwnlib.context.context.noptrace==True")
         return
 
     # if gdbscript is a file object, then read it; we probably need to run some
@@ -458,10 +496,13 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot
         shell = target.parent
 
         tmpfile = shell.mktemp()
-        gdbscript = b'shell rm %s\n%s' % (tmpfile, pwnlib.util.packing._need_bytes(gdbscript, 2, 0x80))
+        gdbscript = b'shell rm %s\n%s' % (tmpfile,
+                                          pwnlib.util.packing._need_bytes(
+                                              gdbscript, 2, 0x80))
         shell.upload_data(gdbscript or b'', tmpfile)
 
-        cmd = ['ssh', '-C', '-t', '-p', str(shell.port), '-l', shell.user, shell.host]
+        cmd = ['ssh', '-C', '-t', '-p', str(shell.port), '-l',
+               shell.user, shell.host]
         if shell.password:
             if not pwnlib.util.misc.which('sshpass'):
                 log.error("sshpass must be installed to debug ssh processes")
@@ -561,7 +602,8 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot
         gdbserver = runner(gdb_cmd)
         port = pwnlib.gdb._gdbserver_port(gdbserver, None)
         host = pwnlib.context.context.adb_host
-        pre += 'target extended-remote %s:%i\n' % (pwnlib.context.context.adb_host, port)
+        pre += 'target extended-remote %s:%i\n' % (
+            pwnlib.context.context.adb_host, port)
 
         # gdbserver on Android sets 'detach-on-fork on' which breaks things
         # when you're trying to debug anything that forks.
@@ -599,7 +641,8 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot
     else:
         preexec_fn = None
 
-    gdb_proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    gdb_proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     gdb_procs[gdb_proc.pid] = gdb_proc  # add to list of gdb processes
 
     gdb_pid = gdb_proc.pid
@@ -638,7 +681,9 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None, sysroot
 
             # Check to see if the socket ever got created
             if not os.path.exists(socket_path):
-                log.error('Failed to connect to GDB: Unix socket %s was never created', socket_path)
+                log.error(
+                    'Failed to connect to GDB: Unix socket %s was never created',
+                    socket_path)
 
             # Check to see if the remote RPyC client is a compatible version
             version_check = [gdb_binary, '--nx', '-batch', '-ex',
