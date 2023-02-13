@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 import pwnlib.log
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class ActionBuilder:
