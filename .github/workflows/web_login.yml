@@ -6,7 +6,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build_and_test:
+  build_challenge:
     runs-on: self-hosted
     steps:
       - name: Checkout code
@@ -18,9 +18,12 @@ jobs:
             docker build -t web_login .
             cd -
             docker run --rm -d  -p 1341:1341 --name web_login web_login:latest
-    # run the test things inside a container
+
+  test_challenge:
+    runs-on: self-hosted
     container:
-    image: ubuntu:latest
+      image: ubuntu:latest
+    steps:
       - name: Run Python scripts
         uses: actions/setup-python@v4
         with:
