@@ -19,6 +19,7 @@ jobs:
             cd -
             docker run --rm -d  -p 1341:1341 --name web_login web_login:latest
 
+
   test_challenge:
     runs-on: self-hosted
     container:
