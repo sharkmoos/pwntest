@@ -19,6 +19,7 @@ jobs:
             cd -
             docker run --rm -d  -p 1341:1341 web_login:latest
       - name: Install dependencies
+        runs-on: self-hosted
         container:
           image: python:3.10
         run: |
