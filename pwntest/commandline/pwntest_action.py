@@ -64,7 +64,6 @@ class ActionBuilder:
                 # get path to directory from path to file
                 challenge_reqs = pathlib.Path(challenge_data.get("requirements")[0]).parent
 
-
         if "docker" in challenge_data:
             ports: str = challenge_data.get("docker").get("ports")
             inline_ports: str = "".join(
