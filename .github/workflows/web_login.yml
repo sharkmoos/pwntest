@@ -1,9 +1,10 @@
-# Challenge Author: 
+# Challenge Author:
 name: web_login
 
 on:
   pull_request:
     branches: [ "master" ]
+
 
 jobs:
   build_and_test:
@@ -25,7 +26,7 @@ jobs:
         with:
           image: web_login
           ports:
-            
+
 
       - name: Run Python scripts
         uses: actions/setup-python@v4
