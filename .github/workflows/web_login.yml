@@ -17,6 +17,7 @@ jobs:
 
       - name: Build and Run Docker Image
         run: |
+            apt install -y docker.io
             cd examples/web_automation/challenge
             docker build -t web_login .
             cd -
