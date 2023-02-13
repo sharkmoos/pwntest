@@ -4,7 +4,7 @@ name: web_login
 on:
   pull_request:
     branches: [ "master" ]
-    paths: [ "examples/web_automation//**" ]
+    #paths: [ "examples/web_automation/**" ]
 
 jobs:
   build_and_test:

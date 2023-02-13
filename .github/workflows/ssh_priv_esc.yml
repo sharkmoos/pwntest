@@ -4,7 +4,7 @@ name: ssh_priv_esc
 on:
   pull_request:
     branches: [ "master" ]
-    paths: [ "examples/ssh_automation//**" ]
+    #paths: [ "examples/ssh_automation/**" ]
 
 jobs:
   build_and_test:

@@ -4,7 +4,7 @@ name: pwn_remote_flag
 on:
   pull_request:
     branches: [ "master" ]
-    paths: [ "examples/pwn_automation//**" ]
+    #paths: [ "examples/pwn_automation/**" ]
 
 jobs:
   build_and_test:
