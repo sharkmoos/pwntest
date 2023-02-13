@@ -1,4 +1,4 @@
-# Challenge Author: 
+# Challenge Author:
 name: web_login
 
 on:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest examples/web_automation/
+          poetry run pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
 
