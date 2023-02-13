@@ -33,7 +33,7 @@ jobs:
           poetry install
       - name: Test with pytest
         run: |
-          pytest examples/web_automation/
+          python3 -m pytest examples/web_automation/
         env:
           CONTAINER_HOST: localhost
 
