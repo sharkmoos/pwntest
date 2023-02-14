@@ -2,10 +2,10 @@ import sys
 import pytest
 import os
 
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
+sys.path.append(os.getcwd())
 import pwntest
 
-from examples.web_login.exploit import main as exploit_code
+from examples.web_automation.exploit import main as exploit_code
 
 rhost, rport = "127.0.0.1", 9004
 lhost, lport = "127.0.0.1", 4444
@@ -19,24 +19,24 @@ def assert_partial_path():
 
 def test_redirect():
     tester = pwntest.PwnTest(remote_target=rhost, port=rport)
-    assert tester.WebAutomation.assert_redirect("http://127.0.0.1:3000/profile")
+    assert tester.WebAutomation.assert_redirect("http://127.0.0.1:9004/profile")
 
     session = tester.WebAutomation.get_session()
-    session.post("http://127.0.0.1:3000/", data={"username": "pwntest", "password": "foobar"})
-    assert not tester.WebAutomation.assert_redirect("http://127.0.0.1:3000/profile", session=True)
+    session.post("http://127.0.0.1:9004/", data={"username": "pwntest", "password": "foobar"})
+    assert not tester.WebAutomation.assert_redirect("http://127.0.0.1:9004/profile", session=True)
 
 
 def test_page_404():
     tester = pwntest.PwnTest(remote_target=rhost, port=rport)
-    assert tester.WebAutomation.assert_get_page_not_found("http://127.0.0.1:3000/hidden")
+    assert tester.WebAutomation.assert_get_page_not_found("http://127.0.0.1:9004/hidden")
 
-    assert tester.WebAutomation.assert_get_page_not_found("http://127.0.0.1:3000/hidden", session=True)
+    assert tester.WebAutomation.assert_get_page_not_found("http://127.0.0.1:9004/hidden", session=True)
 
     session = tester.WebAutomation.get_session()
-    session.post("http://127.0.0.1:3000/", data={"username": "pwntest", "password": "foobar"})
-    assert not tester.WebAutomation.assert_get_page_not_found("http://127.0.0.1:3000/hidden", session=True)
+    session.post("http://127.0.0.1:9004/", data={"username": "pwntest", "password": "foobar"})
+    assert not tester.WebAutomation.assert_get_page_not_found("http://127.0.0.1:9004/hidden", session=True)
 
-    assert tester.WebAutomation.assert_string_on_page("http://127.0.0.1:3000/hidden", "Well done", session=True)
+    assert tester.WebAutomation.assert_string_on_page("http://127.0.0.1:9004/hidden", "Well done", session=True)
 
 # def test_reverse_shell():
 #     shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code)
