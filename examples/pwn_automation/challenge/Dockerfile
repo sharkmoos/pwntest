@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install --no-install-recommends -qy libc6-dev xine
 
 WORKDIR /home/ctf
 
-
 RUN cp -R /usr/lib* /home/ctf
 
 RUN mkdir /home/ctf/dev && \
