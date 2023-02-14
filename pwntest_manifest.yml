@@ -6,7 +6,7 @@ pwn_automation:
   docker:
     docker_path: examples/pwn_automation/challenge
     ports:
-      - 1339:1339
+      - 9001:9999
   requirements:
     - ./poetry.lock
 

@@ -19,7 +19,7 @@ jobs:
             cd examples/pwn_automation/challenge
             docker build -t pwn_automation .
             cd -
-            docker run --rm -d  -p '1339:1339' --name pwn_automation pwn_automation:latest
+            docker run --rm -d  -p '9001:9999' --name pwn_automation pwn_automation:latest
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
