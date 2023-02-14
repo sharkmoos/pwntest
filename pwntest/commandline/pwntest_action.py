@@ -70,7 +70,7 @@ class ActionBuilder:
                 " -p '%s'" % port.replace("'", "".replace('"', ""))
                 for port in ports
             )
-            
+
 
             docker_path: str = challenge_data.get("docker").get("docker_path")
             is_docker: bool = True
