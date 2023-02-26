@@ -18,8 +18,6 @@ from logging import Formatter
 from logging import getLogger as logging_getLogger
 
 
-
-
 class PwnTest:
     """
     PwnTest is the main class for pwntest. It initialises the other pwntest modules.
@@ -351,7 +349,7 @@ class SSHAutomation:
             raise ValueError("SSH Password or Keyfile not provided")
 
         elif password and not keyfile:
-            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, password=password, port=port, ignore_config=True )
+            ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, password=password, port=port, ignore_config=True)
         elif not password and keyfile:
             ssh = pwnlib.tubes.ssh.ssh(user=user, host=ip, keyfile=keyfile, port=port, level="WARNING", ignore_config=True)
         elif password and keyfile:

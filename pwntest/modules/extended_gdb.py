@@ -58,6 +58,14 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
             # gdb process has already terminated
             pass
 
+    def _process_close(self) -> None:
+        """
+        To be used by test_close() method, to close gdb automatically
+        when the user closes the process.
+        :return:
+        """
+        self.__del__()
+
     @staticmethod
     def cleanup() -> None:
         """
@@ -108,6 +116,37 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         if not pid:
             log.info("Program is not running")
         return pid
+
+    def close(self) -> None:
+        self.quit()
+
+        if self._target.proc is None:
+            return
+
+        # First check if we are already dead
+        self._target.poll()
+
+        # close file descriptors
+        for fd in [self._target.proc.stdin,
+                   self._target.proc.stdout, self._target.proc.stderr]:
+            if fd is not None:
+                try:
+                    fd.close()
+                except IOError as e:
+                    if e.errno != self.EPIPE:
+                        raise
+
+        if not self._target._stop_noticed:
+            try:
+                self._target.proc.kill()
+                self._target.proc.wait()
+                self._target._stop_noticed = time.time()
+                self.info('Stopped process %r (pid %i)' %
+                          (self.program, self.pid))
+            except OSError:
+                pass
+            except EOFError:
+                pass
 
     @staticmethod
     def get_section_base(current_pid: int, section_name: str) -> int:
@@ -165,19 +204,19 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         Get the address of a symbol
 
         :param symbol: Symbol to get address of
-        :return: Address of symbol
+        :return: Address of symbol. 0 if symbol not found
         """
 
-        symbol = self.lookup_symbol(symbol)[0]
+        sym = self.lookup_symbol(symbol)[0]
 
-        if symbol is None:
-            log.error(f"Symbol '{symbol}' not found")
-        elif not symbol.is_function:
-            log.error(f"Symbol '{symbol}' is not a function")
+        if sym is None:
+            log.debug(f"Symbol '{symbol}' not found")
+        elif not sym.is_function:
+            log.debug(f"Symbol '{symbol}' is not a function")
         else:
-            return symbol.value()
+            return sym.value()
 
-        return -1
+        return 0
 
     def read_mem(self, addr: int, length: int):
         """
@@ -423,6 +462,8 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
     return gdbserver
 
 
+
+
 def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
                 sysroot=None, api=True):
     """
@@ -442,6 +483,8 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
         log.warn_once("Skipping debug attach since "
                       "pwnlib.context.context.noptrace==True")
         return
+
+
 
     # if gdbscript is a file object, then read it; we probably need to run some
     # more gdb script anyway
@@ -705,8 +748,10 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
 
     # create a thread for receiving breakpoint notifications
     BgServingThread(conn, callback=lambda: None)
+    gdb_proc = ExtendedGdb(conn, target.argv[0].decode())
+    gdb_proc._target = target
 
-    return gdb_pid, ExtendedGdb(conn, target.argv[0].decode())
+    return gdb_pid, gdb_proc
 
 
 atexit.register(ExtendedGdb.cleanup)
