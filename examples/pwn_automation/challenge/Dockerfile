@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install --no-install-recommends -qy libc6-dev gcc 
 WORKDIR /home/ctf
 
 ARG COMPILE_CHALLENGE
+
 ENV COMPILE=${COMPILE_CHALLENGE}
 
 COPY ./bin/* /home/ctf/

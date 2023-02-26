@@ -10,7 +10,7 @@ sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
 import pwntest
 
 # elf = pwnlib.context.binary = pwnlib.elf.ELF('demo')
-elf = pwnlib.context.binary = pwnlib.elf.ELF('examples/gdb_utils/demo')
+elf = pwnlib.context.binary = pwnlib.elf.ELF('examples/gdb_automation/demo')
 
 
 def test_breakpoint():
@@ -46,6 +46,18 @@ def test_reg_read():
     api.quit()
     p.close()
 
+
+def test_get_section_base():
+    p = pwnlib.tubes.process.process([elf.path])
+    gdb_proc, api = pwntest.extended_gdb.test_attach(p)
+
+    stack_addr = api.get_section_base(api.get_pid(), "[stack]")
+    print(f"Stack Address: {hex(stack_addr)}")
+    assert stack_addr
+    api.quit()
+    p.close()
+
+
 def test_memory_read():
     p = pwnlib.tubes.process.process([elf.path])
     gdb_proc, api = pwntest.extended_gdb.test_attach(p)
@@ -54,13 +66,14 @@ def test_memory_read():
     p.sendline(b"FOOBAR")
     api.continue_and_wait()
 
-    # stack pointer in rdi should be "FOOBAR"
+    # pointer in rdi should be "FOOBAR"
     memory = b"".join([i for i in api.read_mem(api.read_reg("rdi"), 6)])
 
     print(f"Memory: {memory}")
     assert memory == b"FOOBAR"
     api.quit()
     p.close()
+
 
 def test_write_mem():
     p = pwnlib.tubes.process.process([elf.path])
@@ -100,3 +113,40 @@ def test_write_reg():
 def test_debug():
     p = pwntest.extended_gdb.test_debug(elf.path)
     test_breakpoint()
+
+
+def test_run_command():
+    p = pwnlib.tubes.process.process([elf.path])
+    gdb_proc, api = pwntest.extended_gdb.test_attach(p)
+
+    api.Breakpoint("*main")
+
+    # write and check
+    data = int.from_bytes(b"A" * 8, byteorder="little")
+    api.run_command("set $rdi = 0x4141414141414141")
+    assert api.read_reg("rdi") == data
+    api.quit()
+    p.close()
+
+
+def test_is_running():
+    p = pwnlib.tubes.process.process([elf.path])
+    gdb_proc, api = pwntest.extended_gdb.test_attach(p)
+
+    api.Breakpoint("*main")
+    assert not api.is_running()
+
+    api.continue_nowait()
+    assert api.is_running()
+
+    api.quit()
+    p.close()
+
+
+def test_addr_from_symbol():
+    p = pwnlib.tubes.process.process([elf.path])
+    gdb_proc, api = pwntest.extended_gdb.test_attach(p)
+
+    assert api.address_from_symbol("main") == elf.sym.main
+    api.quit()
+    p.close()
