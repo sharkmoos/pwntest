@@ -21,6 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class ActionBuilder:
     def __init__(self, manifest_file):
+        self.run_on_changed = None
         self.manifest_file = manifest_file
         self.file_path = ".github/workflows/pwntest.yml"
         self.backup_file_path = ".github/workflows/pwntest.yml.bak"
@@ -110,7 +111,7 @@ class ActionBuilder:
                         "INLINE_PORTS": inline_ports,
                         "REQUIREMENTS": challenge_reqs,
                         "POETRY": uses_poetry,
-                        "RUN_ON_CHANGE": "true",
+                        "RUN_ON_CHANGE": self.run_on_changed
                     }
                 ))
 
@@ -134,6 +135,7 @@ def main(args):
         exit(1)
 
     mapper: ActionBuilder = ActionBuilder(args.manifest)
+    mapper.run_on_changed = args.run_on_changed
     # mapper.save_old_action()
     manifest: dict = mapper.get_challenge_objects()
 
