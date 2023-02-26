@@ -6,7 +6,7 @@ name: {{ TEST_CASE_NAME }}
 on:
   pull_request:
     branches: [ "master" ]
-{%- if RUN_ON_CHANGE %}
+{%- if RUN_ON_CHANGE == "true" %}
     paths:
       - {{CHALLENGE_PATH}}**
 {%- endif %}
