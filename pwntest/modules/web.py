@@ -12,24 +12,19 @@ class WebAutomation:
     WebAutomation class for automating web application testing.
     """
 
-    def __init__(self, rhost: str, rport: int, lhost: str, lport: int) -> None:
+    def __init__(self, rhost: str, rport: int) -> None:
         """
         Initialise the WebAutomation class. Inherits the relevant PwnTestBase attributes.
 
         :param rhost: The target IP address
         :param rport: The target port
-        :param lhost: The local IP address
-        :param lport: The local port
         """
 
-        self.base_url = None
         self.log = pwnlib.log.getLogger("pwntest")
+        self.base_url = None
         self.timeout: int = 2
         self.remote_ip: str = rhost
         self.remote_port: int = rport
-        self.local_host: str = lhost
-        self.local_port: int = lport
-        self.https: bool = False
         self.session: requests.sessions.Session = requests.session()
 
     def set_target(self, base_url: str) -> None:
@@ -148,36 +143,30 @@ class WebAutomation:
         response = request_method(url)
         return response.status_code == 404
 
-    def assert_get_page_not_found(self, pages: list, session: bool = False) -> bool:
+    def assert_get_page_not_found(self, page: str, session: bool = False) -> bool:
         """
         Assert that a given page returns a 404 status code from a get request. By default, this is from a new session.
         If session is true then from the internal session object
 
-        :param pages: The page to send a GET request to
+        :param page: The page to send a GET request to
         :param session: If session is true then request using the internal session object
         :return: True if the page returns a 404 status code, False otherwise
         """
 
         r = self.session if session else requests
 
-        if not isinstance(pages, list):
-            # some people just dont read docs...
-            # but might as well fix the small mistakes ourselves
-            if isinstance(pages, str):
-                pages = [pages]
-            else:
-                self.log.error("Invalid type for parameter 'pages'")
-                return False
+        if not isinstance(page, str):
+            self.log.error("Invalid type for parameter 'pages'")
+            return False
 
-        for page in pages:
-            if not self.is_full_url(page):
-                page = self.make_full_url(page)
-            if not self.assert_page_not_found(r.get, page):
-                return False
+        if not self.is_full_url(page):
+            page = self.make_full_url(page)
+        if not self.assert_page_not_found(r.get, page):
+            return False
 
         return True
 
-    def assert_post_page_not_found(self, pages: list, session: bool = False):
+    def assert_post_page_not_found(self, page: str, session: bool = False):
         """
         Assert that a given page returns a 404 status code from a post request. By default, this is from a new session.
 
@@ -188,20 +177,14 @@ class WebAutomation:
 
         r = self.session if session else requests
 
-        if not isinstance(pages, list):
-            # some people just dont read docs...
-            # but might as well fix the small mistakes ourselves
-            if isinstance(pages, str):
-                pages = [pages]
-            else:
-                self.log.error("Invalid type for parameter 'pages'")
-                return False
+        if not isinstance(page, str):
+            self.log.error("Invalid type for parameter 'pages'")
+            return False
 
-        for page in pages:
-            if not self.is_full_url(page):
-                page = self.make_full_url(page)
-            if not self.assert_page_not_found(r.post, page):
-                return False
+        if not self.is_full_url(page):
+            page = self.make_full_url(page)
+        if not self.assert_page_not_found(r.post, page):
+            return False
 
         return True
 
