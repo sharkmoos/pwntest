@@ -83,9 +83,13 @@ class WebAutomation:
         for arg in args:
             if isinstance(arg, str):
                 continue
-            raise TypeError(f"urljoin arguments must be str, not '{arg}')
+            raise TypeError(f"urljoin arguments must be str, not '{arg}'")
 
-        return "/".join(map(lambda x: x.strip('/'), args))
+        # TODO: see if there is a better way to do this
+        #   not super keen to import urlparse just for this
+        #   like the stackoverflow suggests
+        # return "/".join(map(lambda x: x.strip('/'), args))
+        return "/".join(part.strip("/") for part in args)
 
     def make_full_url(self, path) -> str:
         """
