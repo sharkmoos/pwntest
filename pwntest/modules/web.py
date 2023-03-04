@@ -76,11 +76,16 @@ class WebAutomation:
     @staticmethod
     def urljoin(*args):
         """
-        Joins given arguments into an url. Trailing but not leading slashes are
-        stripped for each argument.
+        Join a list of strings into a URL
+        :param args: List of strings to join into url
+        :return: Joined url
         """
+        for arg in args:
+            if isinstance(arg, str):
+                continue
+            raise TypeError(f"urljoin arguments must be str, not '{arg}')
 
-        return "/".join(map(lambda x: str(x).rstrip('/'), args))
+        return "/".join(map(lambda x: x.strip('/'), args))
 
     def make_full_url(self, path) -> str:
         """
