@@ -1,4 +1,5 @@
 import requests
+import os
 from urllib3.util.url import parse_url
 
 from bs4 import BeautifulSoup
@@ -72,6 +73,15 @@ class WebAutomation:
             return True
         return False
 
+    @staticmethod
+    def urljoin(*args):
+        """
+        Joins given arguments into an url. Trailing but not leading slashes are
+        stripped for each argument.
+        """
+
+        return "/".join(map(lambda x: str(x).rstrip('/'), args))
+
     def make_full_url(self, path) -> str:
         """
         Make a full URL from a path. If the url is already a full url then return the url
@@ -83,7 +93,8 @@ class WebAutomation:
             return path
         if self.base_url is None:
             raise ValueError("Base URL not set. Please set a base URL with set_target() or pass a full URL")
-        return parse_url(self.base_url.join(path))
+
+        return self.urljoin(self.base_url, path)
 
     @staticmethod
     def strip_url_path(url) -> str:
@@ -128,7 +139,7 @@ class WebAutomation:
         if not self.is_full_url(url):
             url = self.make_full_url(url)
 
-        print("Checking if {} is a redirect".format(url))
+        print("Checking if %s is a redirect" % url)
         response = r.get(url)
 
         # if there were any janky methods of redirecting, they should be caught by the history tracking
