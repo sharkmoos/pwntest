@@ -118,6 +118,11 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         return pid
 
     def close(self) -> None:
+        """
+        Close the gdb process and the debugged program in one go.
+
+        :return: None
+        """
         self.quit()
 
         if self._target.proc is None:
