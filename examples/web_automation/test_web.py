@@ -18,6 +18,7 @@ def assert_partial_path():
 
 def test_redirect():
     tester = pwntest.PwnTest(remote_target=rhost, port=rport)
+    tester.WebAutomation.set_target(f"http://{rhost}:{rport}")
     assert tester.WebAutomation.assert_redirect("http://127.0.0.1:9004/profile")
     assert tester.WebAutomation.assert_redirect("/profile")
 

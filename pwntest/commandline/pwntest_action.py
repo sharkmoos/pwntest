@@ -88,8 +88,8 @@ class ActionBuilder:
         log.debug("Author: %s", challenge_author)
         log.debug("Path: %s", challenge_path)
         log.debug("Port: %s", inline_ports)
-        log.debug("Docker Path: %s\n\n", docker_path)
-        log.debug("Requirements: %s", challenge_reqs)
+        log.debug("Docker Path: %s", docker_path)
+        log.debug("Requirements: %s\n\n", challenge_reqs)
 
         if "runs_on" in challenge_data:
             runs_on = challenge_data.get("runs_on")
@@ -115,6 +115,25 @@ class ActionBuilder:
                     }
                 ))
 
+    def auto_regen(self):
+        """
+        Action to regenerate actions
+        :return:
+        """
+
+        template = self.environment.get_template(
+            "pwntest/commandline/repeat_action.jinja"
+        )
+
+        log.info("Creating auto regen action with manifest: '%s'", self.manifest_file)
+        with open(f".github/workflows/rebuild_tests.yml", "wt") as out_file:
+            out_file.write(
+                template.render(
+                    {
+                        "MANIFEST_PATH": self.manifest_file,
+                        "RUN_ON_CHANGED": self.run_on_changed,
+                    }
+                ))
     def get_challenge_objects(self):
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
@@ -134,7 +153,9 @@ def main(args):
         print("Error: Manifest file does not exist")
         exit(1)
 
+    # the manifest describes the challenges
     mapper: ActionBuilder = ActionBuilder(args.manifest)
+    # additional setting for how to run the action
     mapper.run_on_changed = args.run_on_changed
     # mapper.save_old_action()
     manifest: dict = mapper.get_challenge_objects()
@@ -144,23 +165,29 @@ def main(args):
         challenge_data = manifest.get(item)
         mapper.create_action(item, challenge_data)
 
+    if args.auto_regen:
+        # TODO: make the autoregen code
+        mapper.auto_regen()
+        pass
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog='build_action',
         description='Build a GitHub action from a YML manifest',
-        epilog='Text at the bottom of help')
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument("-r", "--run_on_changed", action="store_true",
+                        default=False,
+                        help="Run only on changed files. By default, all tests run")
+
+    parser.add_argument("-a", "--auto_regen", action="store_true",
+                        default=False,
+                        help="Automatically actions using this script")
 
     parser.add_argument("-m", '--manifest', type=str,
                         required=True, help='Path to the manifest file')
-
-    parser.add_argument("--run_on_changed", action="store_true",
-                        default=False,
-                        help="Run only on changed files. By default, all tests run")
-    #
-    # parser.add_argument("--auto_regen", action="store_true",
-    #                     default=False,
-    #                     help="Automatically actions using this script")
 
     arguments = parser.parse_args()
     main(arguments)
