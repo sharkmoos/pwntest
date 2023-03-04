@@ -1,7 +1,8 @@
 """
 TODO:
     - Add cmdline option to add an action that generates actions on push
-    -
+    - Create more veritile "runs-on" logic, to allow for github or self-hosted runners
+    as a cmdline argument
 """
 import argparse
 import logging
@@ -36,7 +37,7 @@ class ActionBuilder:
             with open(self.backup_file_path, "wb") as b:
                 b.write(f.read())
 
-    def create_action(self, challenge_name: str, challenge_data: dict):
+    def create_action(self, challenge_name: str, challenge_data: dict, runs_on: str = "self-hosted"):
         """
         Create a GitHub action for a challenge
 
@@ -91,11 +92,6 @@ class ActionBuilder:
         log.debug("Docker Path: %s", docker_path)
         log.debug("Requirements: %s\n\n", challenge_reqs)
 
-        if "runs_on" in challenge_data:
-            runs_on = challenge_data.get("runs_on")
-        else:
-            runs_on = "self-hosted"
-
         with open(f".github/workflows/{challenge_name}.yml", "wt") as out_file:
             out_file.write(
                 self.template.render(
@@ -115,7 +111,7 @@ class ActionBuilder:
                     }
                 ))
 
-    def auto_regen(self):
+    def auto_regen(self, runs_on: str = "self-hosted"):
         """
         Action to regenerate actions
         :return:
@@ -132,6 +128,7 @@ class ActionBuilder:
                     {
                         "MANIFEST_PATH": self.manifest_file,
                         "RUN_ON_CHANGED": self.run_on_changed,
+                        "RUNS_ON": runs_on,
                     }
                 ))
     def get_challenge_objects(self):
