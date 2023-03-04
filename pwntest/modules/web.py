@@ -83,7 +83,7 @@ class WebAutomation:
             return path
         if self.base_url is None:
             raise ValueError("Base URL not set. Please set a base URL with set_target() or pass a full URL")
-        return parse_url(self.base_url).join(path)
+        return parse_url(self.base_url.join(path))
 
     @staticmethod
     def strip_url_path(url) -> str:
