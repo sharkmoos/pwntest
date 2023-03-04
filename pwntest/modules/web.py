@@ -110,8 +110,8 @@ class WebAutomation:
         """
         Strip the path from a full url
 
-        :param url:
-        :return:
+        :param url: URL to strip
+        :return: Just the url path, without the base
         """
         return parse_url(url).path
 
@@ -143,20 +143,23 @@ class WebAutomation:
         :param url:
         :return:
         """
-        r = self.session if session else requests
 
         if not self.is_full_url(url):
             url = self.make_full_url(url)
 
-        print("Checking if %s is a redirect" % url)
         response = r.get(url)
 
-        # if there were any janky methods of redirecting, they should be caught by the history tracking
+        # if there were any janky methods of redirecting,
+        # they should be caught by the history tracking
         return response.is_redirect or len(response.history) != 0
 
-    def assert_page_not_found(self, request_method, url: str) -> bool:
+    def assert_page_not_found(self, request_method, url: str, session: bool = False) -> bool:
         if not callable(request_method):
             raise TypeError("'request_method' must be callable")
+
+        if not isinstance(url, str):
+            self.log.error("Invalid type for parameter 'pages'")
+            return False
 
         if not self.is_full_url(url):
             url = self.make_full_url(url)
@@ -166,48 +169,32 @@ class WebAutomation:
 
     def assert_get_page_not_found(self, page: str, session: bool = False) -> bool:
         """
-        Assert that a given page returns a 404 status code from a get request. By default, this is from a new session.
+        Assert that a given page returns a 404 status code from a get request.
+        By default, this is from a new session.
         If session is true then from the internal session object
 
         :param page: The page to send a GET request to
         :param session: If session is true then request using the internal session object
         :return: True if the page returns a 404 status code, False otherwise
         """
-
         r = self.session if session else requests
 
-        if not isinstance(page, str):
-            self.log.error("Invalid type for parameter 'pages'")
-            return False
-
-        if not self.is_full_url(page):
-            page = self.make_full_url(page)
-        if not self.assert_page_not_found(r.get, page):
-            return False
-
-        return True
+        found = self.assert_page_not_found(r.get, page, session)
+        return found
 
     def assert_post_page_not_found(self, page: str, session: bool = False):
         """
-        Assert that a given page returns a 404 status code from a post request. By default, this is from a new session.
+        Assert that a given page returns a 404 status code from a post request.
+        By default, this is from a new session.
 
-        :param pages: The page to send a POST request to
+        :param page: The page to send a POST request to
         :param session: If session is true then from the internal session object
         :return:
         """
-
         r = self.session if session else requests
 
-        if not isinstance(page, str):
-            self.log.error("Invalid type for parameter 'pages'")
-            return False
-
-        if not self.is_full_url(page):
-            page = self.make_full_url(page)
-        if not self.assert_page_not_found(r.post, page):
-            return False
-
-        return True
+        found = self.assert_page_not_found(r.post, page, session)
+        return found
 
     def assert_page_codes(self, pages: dict, session: bool = False):
         """
