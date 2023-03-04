@@ -1,4 +1,5 @@
 import requests
+import os
 from urllib3.util.url import parse_url
 
 from bs4 import BeautifulSoup
@@ -12,24 +13,19 @@ class WebAutomation:
     WebAutomation class for automating web application testing.
     """
 
-    def __init__(self, rhost: str, rport: int, lhost: str, lport: int) -> None:
+    def __init__(self, rhost: str, rport: int) -> None:
         """
         Initialise the WebAutomation class. Inherits the relevant PwnTestBase attributes.
 
         :param rhost: The target IP address
         :param rport: The target port
-        :param lhost: The local IP address
-        :param lport: The local port
         """
 
-        self.base_url = None
         self.log = pwnlib.log.getLogger("pwntest")
+        self.base_url = None
         self.timeout: int = 2
         self.remote_ip: str = rhost
         self.remote_port: int = rport
-        self.local_host: str = lhost
-        self.local_port: int = lport
-        self.https: bool = False
         self.session: requests.sessions.Session = requests.session()
 
     def set_target(self, base_url: str) -> None:
@@ -77,6 +73,24 @@ class WebAutomation:
             return True
         return False
 
+    @staticmethod
+    def urljoin(*args):
+        """
+        Join a list of strings into a URL
+        :param args: List of strings to join into url
+        :return: Joined url
+        """
+        for arg in args:
+            if isinstance(arg, str):
+                continue
+            raise TypeError(f"urljoin arguments must be str, not '{arg}'")
+
+        # TODO: see if there is a better way to do this
+        #   not super keen to import urlparse just for this
+        #   like the stackoverflow suggests
+        # return "/".join(map(lambda x: x.strip('/'), args))
+        return "/".join(part.strip("/") for part in args)
+
     def make_full_url(self, path) -> str:
         """
         Make a full URL from a path. If the url is already a full url then return the url
@@ -88,15 +102,16 @@ class WebAutomation:
             return path
         if self.base_url is None:
             raise ValueError("Base URL not set. Please set a base URL with set_target() or pass a full URL")
-        return parse_url(self.base_url).join(path)
+
+        return self.urljoin(self.base_url, path)
 
     @staticmethod
     def strip_url_path(url) -> str:
         """
         Strip the path from a full url
 
-        :param url:
-        :return:
+        :param url: URL to strip
+        :return: Just the url path, without the base
         """
         return parse_url(url).path
 
@@ -128,19 +143,23 @@ class WebAutomation:
         :param url:
         :return:
         """
-        r = self.session if session else requests
 
         if not self.is_full_url(url):
             url = self.make_full_url(url)
 
         response = r.get(url)
 
-        # if there were any janky methods of redirecting, they should be caught by the history tracking
+        # if there were any janky methods of redirecting,
+        # they should be caught by the history tracking
         return response.is_redirect or len(response.history) != 0
 
-    def assert_page_not_found(self, request_method, url: str) -> bool:
+    def assert_page_not_found(self, request_method, url: str, session: bool = False) -> bool:
         if not callable(request_method):
             raise TypeError("'request_method' must be callable")
+
+        if not isinstance(url, str):
+            self.log.error("Invalid type for parameter 'pages'")
+            return False
 
         if not self.is_full_url(url):
             url = self.make_full_url(url)
@@ -148,62 +167,34 @@ class WebAutomation:
         response = request_method(url)
         return response.status_code == 404
 
-    def assert_get_page_not_found(self, pages: list, session: bool = False) -> bool:
+    def assert_get_page_not_found(self, page: str, session: bool = False) -> bool:
         """
-        Assert that a given page returns a 404 status code from a get request. By default, this is from a new session.
+        Assert that a given page returns a 404 status code from a get request.
+        By default, this is from a new session.
         If session is true then from the internal session object
 
-        :param pages: The page to send a GET request to
+        :param page: The page to send a GET request to
         :param session: If session is true then request using the internal session object
         :return: True if the page returns a 404 status code, False otherwise
         """
-
         r = self.session if session else requests
 
-        if not isinstance(pages, list):
-            # some people just dont read docs...
-            # but might as well fix the small mistakes ourselves
-            if isinstance(pages, str):
-                pages = [pages]
-            else:
-                self.log.error("Invalid type for parameter 'pages'")
-                return False
+        found = self.assert_page_not_found(r.get, page, session)
+        return found
 
-        for page in pages:
-            if not self.is_full_url(page):
-                page = self.make_full_url(page)
-            if not self.assert_page_not_found(r.get, page):
-                return False
-
-        return True
-
-    def assert_post_page_not_found(self, pages: list, session: bool = False):
+    def assert_post_page_not_found(self, page: str, session: bool = False):
         """
-        Assert that a given page returns a 404 status code from a post request. By default, this is from a new session.
+        Assert that a given page returns a 404 status code from a post request.
+        By default, this is from a new session.
 
-        :param pages: The page to send a POST request to
+        :param page: The page to send a POST request to
         :param session: If session is true then from the internal session object
         :return:
         """
-
         r = self.session if session else requests
 
-        if not isinstance(pages, list):
-            # some people just dont read docs...
-            # but might as well fix the small mistakes ourselves
-            if isinstance(pages, str):
-                pages = [pages]
-            else:
-                self.log.error("Invalid type for parameter 'pages'")
-                return False
-
-        for page in pages:
-            if not self.is_full_url(page):
-                page = self.make_full_url(page)
-            if not self.assert_page_not_found(r.post, page):
-                return False
-
-        return True
+        found = self.assert_page_not_found(r.post, page, session)
+        return found
 
     def assert_page_codes(self, pages: dict, session: bool = False):
         """

@@ -14,7 +14,7 @@ ssh_priv_esc:
   author: sharkmoos
   directory: examples/ssh_automation/
   docker:
-    docker_path: examples/ssh_automation/challenge
+    docker_path: examples/ssh_automation/challenge/
     ports:
       - 9003:22
   requirements:
@@ -22,7 +22,7 @@ ssh_priv_esc:
 
 web_login:
   author: sharkmoos
-  directory: examples/web_automation/
+  directory: examples/web_automation
   requirements:
     - examples/web_automation/requirements.txt
   docker:

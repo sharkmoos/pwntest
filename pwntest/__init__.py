@@ -49,7 +49,7 @@ class PwnTest:
         # Perhaps could use "isinstance" to check if the object has been initialised in the call function,
         # and if not initialise it.
         self.PwnAutomation: PwnAutomation = PwnAutomation(binary_path=binary_path, ip=remote_target, port=port, ssh=ssh)
-        self.WebAutomation: WebAutomation = WebAutomation(rhost=remote_target, rport=port, lhost="127.0.0.1", lport=1337)
+        self.WebAutomation: WebAutomation = WebAutomation(rhost=remote_target, rport=port)
         self.SSHAutomation: SSHAutomation
 
         if ssh:

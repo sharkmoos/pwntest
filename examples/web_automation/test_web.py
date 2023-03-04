@@ -11,7 +11,6 @@ rhost, rport = "127.0.0.1", 9004
 lhost, lport = "127.0.0.1", 4444
 
 
-
 def assert_partial_path():
     tester = pwntest.PwnTest(remote_target=rhost, port=rport)
     assert tester.WebAutomation.assert_page_codes({"/": 200, "/hidden": 404})
@@ -19,11 +18,15 @@ def assert_partial_path():
 
 def test_redirect():
     tester = pwntest.PwnTest(remote_target=rhost, port=rport)
+    tester.WebAutomation.set_target(f"http://{rhost}:{rport}")
     assert tester.WebAutomation.assert_redirect("http://127.0.0.1:9004/profile")
+    assert tester.WebAutomation.assert_redirect("/profile")
 
     session = tester.WebAutomation.get_session()
     session.post("http://127.0.0.1:9004/", data={"username": "pwntest", "password": "foobar"})
     assert not tester.WebAutomation.assert_redirect("http://127.0.0.1:9004/profile", session=True)
+    assert not tester.WebAutomation.assert_redirect("/profile", session=True)
+    assert tester.WebAutomation.assert_redirect("/profile", session=False)
 
 
 def test_page_404():
