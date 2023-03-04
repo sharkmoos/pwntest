@@ -128,6 +128,7 @@ class WebAutomation:
         if not self.is_full_url(url):
             url = self.make_full_url(url)
 
+        print("Checking if {} is a redirect".format(url))
         response = r.get(url)
 
         # if there were any janky methods of redirecting, they should be caught by the history tracking
