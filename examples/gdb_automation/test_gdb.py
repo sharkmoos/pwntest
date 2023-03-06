@@ -12,6 +12,7 @@ import pwntest
 
 # elf = pwnlib.context.binary = pwnlib.elf.ELF('demo')
 elf = pwnlib.context.binary = pwnlib.elf.ELF('examples/gdb_automation/demo')
+os.system(f"chmod +x {elf.path}")
 
 
 def test_breakpoint():
