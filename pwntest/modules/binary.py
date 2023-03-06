@@ -39,6 +39,8 @@ class BinaryAutomation:
         self.remote_port: int = port
         self.remote_test: bool = False
         self.local_test: bool = False
+        self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
+        elf = self.elf
 
         self.blob_strings_file: str = ""
 
@@ -97,7 +99,15 @@ class BinaryAutomation:
         if exploit.__code__.co_argcount != 2:
             raise ValueError("Exploit function must have 2 parameters: (ip, port)")
 
-        output = exploit(self.remote_ip, self.remote_port)
+        try:
+            output = exploit(self.remote_ip, self.remote_port)
+        except Exception as e:
+            self.log.warning("Exploit crashed due to: %s" % e)
+            return False
+
+        if not output:
+            self.log.debug("Exploit failed.")
+            return False
 
         if not flag and not flag_path:
             output.sendline(b"echo FOOBAR")
@@ -157,6 +167,10 @@ class BinaryAutomation:
             self.log.warning("No binary loaded.")
             return False
 
+        # Cos who even cares about strict typing in python
+        if isinstance(protections, str):
+            protections = [protections]
+
         for protection in protections:
             protection = protection.lower()
             match protection:
@@ -182,7 +196,7 @@ class BinaryAutomation:
                         self.log.warning("Binary is not Partial RELRO enabled.")
                         return False
                 case _:
-                    self.log.error(f"Unknown protection: '{protection}'")
+                    self.log.warning(f"Unknown protection: '{protection}'")
                     return False
 
         return True
@@ -242,11 +256,11 @@ class BinaryAutomation:
                 data: bytes = in_file.read(4096)
                 if not data:
                     break
-                blob_strings += pattern.findall(data)
-                self.log.debug("Found %d strings of length %d or more",
-                               (len(blob_strings), length))
-                out_file.writelines(
-                    [string.decode() + "\n" for string in blob_strings]
+                blob_strings += [i for i in pattern.findall(data)]
+            self.log.debug("Found %d strings of length %d or more",
+                               len(blob_strings), length)
+            out_file.writelines(
+                [string.decode() + "\n" for string in blob_strings]
                 )
 
     def get_strings(self, length: int = 4) -> list:
@@ -259,7 +273,7 @@ class BinaryAutomation:
             self._extract_binary_strings()
 
         with open(self.blob_strings_file, "rt") as in_file:
-            strings: list = in_file.readlines(200)
+            strings: list = in_file.readlines()
 
         return [string if len(string) > length else None for string in strings]
 
@@ -274,4 +288,11 @@ class BinaryAutomation:
         if str_len < 4:
             self.log.warning("String to match should be len > 3")
         strings: list = self.get_strings(str_len)
-        return string in strings
+        if string + "\n" in strings:
+            return True
+
+        try:
+            return string == next(self.elf.search(string.encode()))
+        except StopIteration:
+            return False
+

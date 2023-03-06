@@ -247,6 +247,10 @@ class WebAutomation:
         :return: Contents of element.
         """
 
+        if not isinstance(url, str):
+            self.log.error("Invalid type for parameter 'url'")
+            return ""
+
         r = self.session if session else requests
 
         element_data: str = ""
@@ -256,8 +260,10 @@ class WebAutomation:
             response: requests.models.Response = r.get(url, timeout=self.timeout)
             soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
             print(soup)
-            if soup:
-                element_data = soup.find(id=element).text
+            element_data = soup.find(id=element)
+            if not element_data:
+                self.log.info(f"Element '{element}' not found on page '{url}'")
+                return ""
 
         except requests.exceptions.Timeout:
             self.log.warning("Request timed out.")

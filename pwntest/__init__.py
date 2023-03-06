@@ -50,7 +50,7 @@ class PwnTest:
         #       where these are only initialised the first time they're used or something
         # Perhaps could use "isinstance" to check if the object has been initialised in the call function,
         # and if not initialise it.
-        self.PwnAutomation: BinaryAutomation = BinaryAutomation(binary_path=binary_path, ip=remote_target, port=port)
+        self.BinaryAutomation: BinaryAutomation = BinaryAutomation(binary_path=binary_path, ip=remote_target, port=port)
         self.WebAutomation: WebAutomation = WebAutomation(rhost=remote_target, rport=port)
         self.SSHAutomation: SSHAutomation
 
@@ -197,9 +197,18 @@ class PwnTest:
                 progress.failure("Failed due to timeout")
         return
 
-    def assert_reverse_shell(self):
-        # TODO: Implement this function
-        return
+    @staticmethod
+    def assert_remote_connected(tube: pwnlib.tubes.remote.remote) -> bool:
+        """
+        Occasionally, a shell can connect with the listener and then be dropped/killed
+        on the remote side. For example by antivirus. This function sanity checks
+        the shell by just attempting to run a command.
+
+        :param tube: A pwntools remote tube object
+        :return: True if the shell is still alive, False otherwise
+        """
+        tube.sendline(b"echo FOOBAR")
+        return tube.connected()
 
     def assert_flag(self, tube, flag_path: str, flag_str: str) -> bool:
         """

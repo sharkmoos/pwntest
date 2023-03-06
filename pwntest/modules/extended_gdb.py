@@ -37,7 +37,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     """
 
     # def __init__(self, conn: rpyc.core.protocol.Connection, binary_path: str):
-    def __init__(self, conn, binary_path: str):
+    def __init__(self, conn, binary_path: bytes):
         """
         Constructor. Starts a gdb process and adds it to the global
         list of gdb processes.
@@ -46,7 +46,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :param binary_path:
         """
         super().__init__(conn)
-        self.binary_path: str = binary_path
+        self.binary_path: str = binary_path.decode()
 
     def __del__(self) -> None:
         """
@@ -367,6 +367,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         return results
 
+
 # Copyright (c) 2015 Gallopsled et al.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -402,7 +403,7 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
     orig_args = args
 
     runner = pwnlib.gdb._get_runner(ssh)
-    which  = pwnlib.gdb._get_which(ssh)
+    which = pwnlib.gdb._get_which(ssh)
     gdbscript = gdbscript or ''
 
     if api and runner is not pwnlib.tubes.process.process:
@@ -434,7 +435,6 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
 
     # Make sure gdbserver/qemu is installed
     if not which(args[0]):
-
         log.error("%s is not installed" % args[0])
 
     if not ssh:
