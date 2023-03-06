@@ -8,10 +8,13 @@ on: [ "push" ]
 jobs:
   create_tests:
     runs-on: {{ RUNS_ON }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v3
+        with:
+          ref: {% raw %}${{ github.head_ref }}{%- endraw %}
       - name: Generate Tests
         uses: actions/setup-python@v3
         with:
@@ -30,3 +33,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Auto-regenerate tests"
+

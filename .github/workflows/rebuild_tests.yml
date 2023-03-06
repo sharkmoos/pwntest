@@ -8,10 +8,13 @@ on: [ "push" ]
 jobs:
   create_tests:
     runs-on: self-hosted
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
       - name: Generate Tests
         uses: actions/setup-python@v3
         with:
