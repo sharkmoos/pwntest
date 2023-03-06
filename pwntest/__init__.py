@@ -140,7 +140,9 @@ class PwnTest:
 
         pwnlib.replacements.sleep(2)
         # create thread to run the exploit function
-        exploit_thread = threading.Thread(target=exploit_function, args=(self.remote_ip, self.remote_port, local_host, local_port))
+        exploit_thread = threading.Thread(
+            target=exploit_function,
+            args=(self.remote_ip, self.remote_port, local_host, local_port))
         exploit_thread.start()
 
         listener_thread.join()  # wait for the listener to connect or timeout
