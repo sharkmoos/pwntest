@@ -126,7 +126,7 @@ class ActionBuilder:
             out_file.write(
                 template.render(
                     {
-                        "MANIFEST_PATH": self.manifest_file,
+                        "MANIFEST_PATH": self.manifest_file if self.manifest_file.endswith("/") else self.manifest_file + "/" ,
                         "RUN_ON_CHANGED": self.run_on_changed,
                         "RUNS_ON": runs_on,
                     }

@@ -3,7 +3,11 @@
 
 name: Auto-regenerate Tests
 
-on: [ "push" ]
+on:
+  push:
+    paths:
+      - {{ MANIFEST_PATH }}**
+
 
 permissions:
   contents: write
