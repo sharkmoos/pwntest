@@ -30,6 +30,6 @@ web_login:
     ports:
       - 9004:3000
 
-gdb_automation:
-  author: sharkmoos
-  directory: examples/gdb_automation
+#gdb_automation:
+#  author: sharkmoos
+#  directory: examples/gdb_automation
