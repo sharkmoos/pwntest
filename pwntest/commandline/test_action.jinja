@@ -24,7 +24,7 @@ jobs:
             cd {{ TEST_CASE_NAME_PATH }}
             docker build -t {{TEST_CASE_NAME}} .
             cd -
-            docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} -add-host host.docker.internal:host-gateway {{TEST_CASE_NAME}}:latest
+            docker run --rm -d {{INLINE_PORTS}} --name {{TEST_CASE_NAME}} --add-host host.docker.internal:host-gateway {{TEST_CASE_NAME}}:latest
 {% endif %}
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
