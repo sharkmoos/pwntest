@@ -33,4 +33,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Auto-regenerate tests"
+          github_token: {% raw %}${{ secrets.GITHUB_TOKEN }}{%- endraw %}
 
