@@ -1,5 +1,4 @@
 import requests
-import os
 from urllib3.util.url import parse_url
 
 from bs4 import BeautifulSoup
@@ -115,7 +114,15 @@ class WebAutomation:
         """
         return parse_url(url).path
 
-    def assert_string_on_page(self, url: str, string: str, session: bool = False) -> bool:
+    def reset_session(self) -> requests.sessions.Session:
+        """
+        Reset the session object
+        :return: New session object
+        """
+        self.session = requests.session()
+        return self.session
+
+    def assert_string_on_page(self, url: str, string: str, session: bool = True) -> bool:
         """
         Check if a string is on a page.
 
@@ -135,7 +142,7 @@ class WebAutomation:
 
         return False
 
-    def assert_redirect(self, url, session: bool = False) -> bool:
+    def assert_redirect(self, url, session: bool = True) -> bool:
         """
         Returns true if the response to the request is a redirect
 
@@ -143,6 +150,8 @@ class WebAutomation:
         :param url:
         :return:
         """
+
+        r = self.session if session else requests
 
         if not self.is_full_url(url):
             url = self.make_full_url(url)
@@ -153,7 +162,7 @@ class WebAutomation:
         # they should be caught by the history tracking
         return response.is_redirect or len(response.history) != 0
 
-    def assert_page_not_found(self, request_method, url: str, session: bool = False) -> bool:
+    def assert_page_not_found(self, request_method, url: str) -> bool:
         if not callable(request_method):
             raise TypeError("'request_method' must be callable")
 
@@ -162,12 +171,12 @@ class WebAutomation:
             return False
 
         if not self.is_full_url(url):
-            url = self.make_full_url(url)
+            url: str = self.make_full_url(url)
 
         response = request_method(url)
         return response.status_code == 404
 
-    def assert_get_page_not_found(self, page: str, session: bool = False) -> bool:
+    def assert_get_page_not_found(self, page: str, session: bool = True) -> bool:
         """
         Assert that a given page returns a 404 status code from a get request.
         By default, this is from a new session.
@@ -178,11 +187,9 @@ class WebAutomation:
         :return: True if the page returns a 404 status code, False otherwise
         """
         r = self.session if session else requests
+        return self.assert_page_not_found(r.get, page)
 
-        found = self.assert_page_not_found(r.get, page, session)
-        return found
-
-    def assert_post_page_not_found(self, page: str, session: bool = False):
+    def assert_post_page_not_found(self, page: str, session: bool = True):
         """
         Assert that a given page returns a 404 status code from a post request.
         By default, this is from a new session.
@@ -193,10 +200,10 @@ class WebAutomation:
         """
         r = self.session if session else requests
 
-        found = self.assert_page_not_found(r.post, page, session)
+        found = self.assert_page_not_found(r.post, page)
         return found
 
-    def assert_page_codes(self, pages: dict, session: bool = False):
+    def assert_page_codes(self, pages: dict, session: bool = True):
         """
         Pass a dictionary of dictionaries of the format
 
@@ -224,28 +231,34 @@ class WebAutomation:
                 case _:
                     self.log.warning(f"Request type '{page['type']}' not supported. Returning False")
                     return False
-
             if response.status_code == page["status_code"]:
                 return False
 
         return True
 
-    def get_element_contents_by_id(self, url: str, element: str) -> str:
+    def get_element_contents_by_id(self, url: str, element: str, session: bool = True) -> str:
         """
         Get the contents of an element on a page. Only the first element of a page will be returned, as
         HTML specification states that IDs should be unique anyway.
 
+        :param session:
         :param url: URL to check
         :param element: Element to get contents of
         :return: Contents of element.
         """
+
+        r = self.session if session else requests
+
         element_data: str = ""
         try:
             if not self.is_full_url(url):
                 url = self.make_full_url(url)
-            response: requests.models.Response = self.session.get(url, timeout=self.timeout)
+            response: requests.models.Response = r.get(url, timeout=self.timeout)
             soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
-            element_data = soup.find(id=element).text
+            print(soup)
+            if soup:
+                element_data = soup.find(id=element).text
+
         except requests.exceptions.Timeout:
             self.log.warning("Request timed out.")
         return element_data

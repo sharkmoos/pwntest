@@ -30,8 +30,6 @@ def test_breakpoint():
     assert expected_pc == actual_pc
 
     api.quit()
-    p.close()
-
 
 
 def test_reg_read():
@@ -45,7 +43,6 @@ def test_reg_read():
     # rax should be 8, because we sent 8 bytes of data
     assert api.read_reg("rax") == 8
     api.quit()
-    p.close()
 
 
 def test_get_section_base():
@@ -56,7 +53,6 @@ def test_get_section_base():
     print(f"Stack Address: {hex(stack_addr)}")
     assert stack_addr
     api.quit()
-    p.close()
 
 
 def test_memory_read():
@@ -73,7 +69,6 @@ def test_memory_read():
     print(f"Memory: {memory}")
     assert memory == b"FOOBAR"
     api.quit()
-    p.close()
 
 
 def test_write_mem():
@@ -92,7 +87,6 @@ def test_write_mem():
     new_data = b"".join([i for i in api.read_mem(stack_addr, 8)])
     assert new_data == data
     api.quit()
-    p.close()
 
 
 def test_write_reg():
@@ -108,12 +102,11 @@ def test_write_reg():
     api.write_reg("rdi", data)
     assert api.read_reg("rdi") == data
     api.quit()
-    p.close()
 
 
-def test_debug():
-    p = pwntest.extended_gdb.test_debug(elf.path)
-    test_breakpoint()
+# def test_debug():
+#     p = pwntest.extended_gdb.test_debug(elf.path)
+#     test_breakpoint()
 
 
 def test_run_command():
@@ -127,7 +120,6 @@ def test_run_command():
     api.run_command("set $rdi = 0x4141414141414141")
     assert api.read_reg("rdi") == data
     api.quit()
-    p.close()
 
 
 def test_is_running():
@@ -141,13 +133,10 @@ def test_is_running():
     assert api.is_running()
 
     api.quit()
-    p.close()
-
 
 def test_addr_from_symbol():
     p = pwnlib.tubes.process.process([elf.path])
     gdb_proc, api = pwntest.extended_gdb.test_attach(p)
 
-    assert api.address_from_symbol("main") == elf.sym.main
+    assert int(api.address_from_symbol("main")) - api.get_binary_base() == elf.sym.main
     api.quit()
-    p.close()

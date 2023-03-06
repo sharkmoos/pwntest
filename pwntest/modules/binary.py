@@ -1,5 +1,6 @@
-import ropgadget
 import re
+import tempfile
+import os
 
 import pwnlib.log
 import pwnlib.tubes
@@ -9,14 +10,16 @@ import pwnlib.rop
 import pwnlib.asm
 
 
-# class PwnAutomation(PwnTestBase):
-class PwnAutomation:
+# class BinaryAutomation(PwnTestBase):
+class BinaryAutomation:
     """
-    PwnAutomation is a class that provides some functionality for checking properties of executables
+    BinaryAutomation is a class that provides some functionality for interacting
+    with executables.
     """
-    def __init__(self, binary_path: str, ip: str = "", port: int = 0, ssh=None) -> None:
+
+    def __init__(self, binary_path: str, ip: str = "", port: int = 0) -> None:
         """
-        Initialise the PwnAutomation class. Inherits the relevant PwnTestBase attributes.
+        Initialise the BinaryAutomation class. Inherits the relevant PwnTestBase attributes.
 
         :param binary_path: path to the binary to test
         :param ip: remote IP address
@@ -28,10 +31,7 @@ class PwnAutomation:
         >>> import pwntest
         >>> tester = pwntest.PwnTest("demo")
         """
-        self.rop: pwnlib.rop.rop = None
-        self.elf: pwnlib.elf.elf = None
         self.process: pwnlib.tubes.process.process = None
-        self.ssh: pwnlib.tubes.ssh = ssh
         self.log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
         self.binary_path: str = binary_path
@@ -40,8 +40,17 @@ class PwnAutomation:
         self.remote_test: bool = False
         self.local_test: bool = False
 
-        if self.binary_path:
-            self.elf = pwnlib.elf.ELF(self.binary_path)
+        self.blob_strings_file: str = ""
+
+    def __del__(self) -> None:
+        """
+        Clean up the BinaryAutomation class
+        """
+        if self.process:
+            self.process.close()
+
+        if self.blob_strings_file:
+            os.remove(self.blob_strings_file)
 
     def assert_exploit(self, exploit, flag="", flag_path="", remote: bool = True) -> bool:
         """
@@ -68,7 +77,7 @@ class PwnAutomation:
         >>>     s = remote(ip, port)
         >>>     s.sendline(b"cat /flag")
         >>>     return s.recvline_contains(b"flag{")
-        >>> tester.PwnAutomation.assert_exploit(exploit, flag="flag{", flag_path="/flag")
+        >>> tester.BinaryAutomation.assert_exploit(exploit, flag="flag{", flag_path="/flag")
 
         **Local Exploit**
 
@@ -77,7 +86,7 @@ class PwnAutomation:
         >>>     s.sendline(b"FOOBAR")
         >>>     # shell dropped, so s is a tube into the shell
         >>>     return s
-        >>> tester.PwnAutomation.assert_exploit(exploit, shell=True, remote=False)
+        >>> tester.BinaryAutomation.assert_exploit(exploit, shell=True, remote=False)
         """
 
         # check the exploit parameter is callable
@@ -111,18 +120,16 @@ class PwnAutomation:
 
         **Example:**
 
-        >>> tester.PwnAutomation.assert_symbol_exists("main")
+        >>> tester.BinaryAutomation.assert_symbol_exists("main")
         True
 
         """
 
-        if self.elf:
-            passed: bool = symbol in self.elf.symbols
-        else:
+        if not self.elf:
             self.log.error("No binary loaded.")
             return False
 
-        return passed
+        return symbol in self.elf.symbols
 
     def assert_protections(self, protections: list) -> bool:
         """
@@ -141,13 +148,13 @@ class PwnAutomation:
 
         Example:
 
-        >>> tester.PwnAutomation.assert_protections(["NX", "Canary", "PIE", "RELRO Full"])
+        >>> tester.BinaryAutomation.assert_protections(["NX", "Canary", "PIE", "RELRO Full"])
         [!] Binary does not have stack canary.
         False
 
         """
         if not self.elf:
-            self.log.error("No binary loaded.")
+            self.log.warning("No binary loaded.")
             return False
 
         for protection in protections:
@@ -176,6 +183,7 @@ class PwnAutomation:
                         return False
                 case _:
                     self.log.error(f"Unknown protection: '{protection}'")
+                    return False
 
         return True
 
@@ -189,10 +197,10 @@ class PwnAutomation:
 
         **Example:**
 
-        >>> tester.PwnAutomation.assert_rop_gadget_exists(["pop rdi", "ret"])
+        >>> tester.BinaryAutomation.assert_rop_gadget_exists(["pop rdi", "ret"])
         False
 
-        >>> tester.PwnAutomation.assert_rop_gadget_exists(["ret"])
+        >>> tester.BinaryAutomation.assert_rop_gadget_exists(["ret"])
         True
 
         """
@@ -213,3 +221,57 @@ class PwnAutomation:
                     pass
 
         return gadget_addr is not None
+
+    def _extract_binary_strings(self, length: int = 4) -> None:
+        """
+        Extract strings from the binary.
+
+        :param length: Minimum length of string to extract.
+        """
+
+        self.blob_strings_file: str = tempfile.mkstemp()[1]
+
+        ascii_chars: str = r"A-Za-z0-9/\-:.,_$%'()[\]<> "
+        expression: str = '[%s]{%d,}' % (ascii_chars, length)
+        pattern: re.Pattern = re.compile(expression.encode())
+
+        blob_strings: list = []
+        with open(self.elf.path, "rb") as in_file, \
+                open(self.blob_strings_file, "w") as out_file:
+            while True:
+                data: bytes = in_file.read(4096)
+                if not data:
+                    break
+                blob_strings += pattern.findall(data)
+                self.log.debug("Found %d strings of length %d or more",
+                               (len(blob_strings), length))
+                out_file.writelines(
+                    [string.decode() + "\n" for string in blob_strings]
+                )
+
+    def get_strings(self, length: int = 4) -> list:
+        """
+        Length should not be less than 4, as this will return a lot of false positives.
+        :param length: Get strings of length
+        :return: List of strings of length > length
+        """
+        if not self.blob_strings_file:
+            self._extract_binary_strings()
+
+        with open(self.blob_strings_file, "rt") as in_file:
+            strings: list = in_file.readlines(200)
+
+        return [string if len(string) > length else None for string in strings]
+
+    def assert_string_exists(self, string: str) -> bool:
+        """
+        Check if a string exists in the binary.
+        Length should not be less than 4, as this will return a lot of false positives.
+        :param string: String to check for
+        :return: True if string exists, False otherwise.
+        """
+        str_len: int = len(string)
+        if str_len < 4:
+            self.log.warning("String to match should be len > 3")
+        strings: list = self.get_strings(str_len)
+        return string in strings

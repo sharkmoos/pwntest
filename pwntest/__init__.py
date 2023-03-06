@@ -2,6 +2,7 @@ import os
 import threading
 import base64
 import socket
+import tempfile
 
 import pwnlib.context
 import pwnlib.elf
@@ -11,7 +12,7 @@ import pwnlib.filesystem
 
 import pwntest.modules.extended_gdb as extended_gdb
 
-from pwntest.modules.binary import PwnAutomation
+from pwntest.modules.binary import BinaryAutomation
 from pwntest.modules.web import WebAutomation
 
 from logging import Formatter
@@ -39,6 +40,7 @@ class PwnTest:
         """
         self.remote_ip: str = remote_target
         self.remote_port: int = port
+        tempfile.template = "/tmp/pwntest_"
 
         configure_logger()
         self.log.setLevel("DEBUG")
@@ -48,7 +50,7 @@ class PwnTest:
         #       where these are only initialised the first time they're used or something
         # Perhaps could use "isinstance" to check if the object has been initialised in the call function,
         # and if not initialise it.
-        self.PwnAutomation: PwnAutomation = PwnAutomation(binary_path=binary_path, ip=remote_target, port=port, ssh=ssh)
+        self.PwnAutomation: BinaryAutomation = BinaryAutomation(binary_path=binary_path, ip=remote_target, port=port)
         self.WebAutomation: WebAutomation = WebAutomation(rhost=remote_target, rport=port)
         self.SSHAutomation: SSHAutomation
 
@@ -132,7 +134,7 @@ class PwnTest:
         socket_details: dict = {}
 
         # create a listener thread
-        listener_thread = threading.Thread(target=self.run_socket_listener, args=(local_host, local_port, socket_details))
+        listener_thread = threading.Thread(target=self.run_socket_listener, args=("0.0.0.0", local_port, socket_details))
         listener_thread.start()
 
         # create thread to run the exploit function
@@ -140,7 +142,7 @@ class PwnTest:
         exploit_thread.start()
         pwnlib.replacements.sleep(1)
 
-        listener_thread.join()  # wait for the listener to finish or timeout
+        listener_thread.join()  # wait for the listener to connect or timeout
         if socket_details:  # if there are details, a connection was made
             conn = pwnlib.tubes.remote.remote(
                 socket_details["host"],
@@ -151,8 +153,8 @@ class PwnTest:
             )
             self.log.success("Upgraded to full pwntools connection")
         else:
-            self.log.warning("Could not establish a connection to the remote host")
             conn = None
+            self.log.warning("Could not establish a connection to the remote host")
 
         return conn
 
@@ -178,27 +180,67 @@ class PwnTest:
             try:
                 sock.bind((listener_host, listener_port))
             except socket.error as error:
-                pwnlib.log.error(error)
+                cls.log.warning("Failed due to %s", error)
+                return
 
             try:
                 sock.listen(1)
                 conn, addr = sock.accept()
                 sock.settimeout(None)
                 progress.success(f"Raw socket connected by {addr}")
+                # pass the connection back to the main thread
+                socket_details["host"], socket_details["port"] = addr
+                socket_details["fam"] = conn.family
+                socket_details["type"] = conn.type
+                socket_details["conn"] = conn
             except TimeoutError:
-                progress.failure("Failed")
-                return
+                progress.failure("Failed due to timeout")
+        return
 
-        # pass the connection back to the main thread
-        socket_details["host"], socket_details["port"] = addr
-        socket_details["fam"] = conn.family
-        socket_details["type"] = conn.type
-        socket_details["conn"] = conn
+    def assert_reverse_shell(self):
+        # TODO: Implement this function
+        return
+
+    def assert_flag(self, tube, flag_path: str, flag_str: str) -> bool:
+        """
+        Checks if a flag is accessible to a pwntools tube object [ssh, socket, process]
+
+        :param tube: A pwntools tube object [ssh, socket, process]
+        :param flag_path: The path to the flag file
+        :param flag_str: The expected flag string
+        :return: True if the flag is readable and correct, False otherwise
+        """
+        if isinstance(tube, pwnlib.tubes.ssh.ssh):
+            if not tube.connected():
+                self.log.warning("SSH connection is not open")
+                return False
+            shell = tube.run("sh")
+        elif isinstance(tube, pwnlib.tubes.sock.sock or pwnlib.tubes.remote.remote):
+            # the socket connected doesn't update until it fails, so check
+            tube.send("echo A")
+            if not tube.connected():
+                self.log.warning("Socket connection is not open")
+                return False
+            shell = tube
+        elif isinstance(tube, pwnlib.tubes.process.process):
+            if not tube.connected():
+                self.log.warning("Process connection is not open")
+                return False
+            shell = tube
+        else:
+            self.log.warning("Unsupported connection type")
+            return False
+
+        shell.clean()
+        shell.sendline(f"cat {flag_path}".encode())
+        return flag_str in shell.readrepeat(timeout=1).decode()
 
 
 class SSHAutomation:
     """
     Common functions for SSH test automation
+    TODO:
+        - Clean up these functions
     """
     log = pwnlib.log.getLogger("pwntest")
 
@@ -245,7 +287,7 @@ class SSHAutomation:
         if remote_file.exists:
             self.ssh.download_file(remote_path, local_path)
             if os.path.isfile(local_path):
-                self.log.debug("Local file does not exist")
+                self.log.debug("Local file exists")
                 os.remove(local_path)
                 passed = True
         else:
@@ -364,9 +406,29 @@ class SSHAutomation:
         return ssh
 
 
+# Copyright (c) 2015 Gallopsled et al.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 def configure_logger():
     """
     Configure the logger for pwntools. Identical to pwnlib.log.configure_logger
+    used under MIT license.
 
     :return:
     """

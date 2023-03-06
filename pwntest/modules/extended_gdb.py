@@ -1,3 +1,8 @@
+"""
+TODO:
+    - make get_section_base not need a pid
+    - Remove unnecessary code and args from test_debug and test_attach
+"""
 import os
 import subprocess
 import tempfile
@@ -178,9 +183,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
                 # some sections have a name in square brackets ([stack]),
                 # but lets not force the user to have to write that
                 if (section_name if not current_section_name.startswith("[")
-                        or section_name.startswith("[")
-                        else f"[{section_name}]") == current_section_name:
-
+                                    or section_name.startswith("[")
+                else f"[{section_name}]") == current_section_name:
                     base: int = int(line.split("-")[0], 16)
                     log.debug(f"{section_name}: {hex(base)}")
                     return base
@@ -219,7 +223,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         elif not sym.is_function:
             log.debug(f"Symbol '{symbol}' is not a function")
         else:
-            return sym.value()
+            return sym.value().address
 
         return 0
 
@@ -363,24 +367,33 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         return results
 
-
+# Copyright (c) 2015 Gallopsled et al.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
-               sysroot=None, api=False, **kwargs):
+               sysroot=None, api=True, **kwargs):
     """
     Identical to the gdb.debug() function, runs gdb as a subprocess rather than in a terminal window.
-
-    :param args:
-    :param gdbscript:
-    :param exe:
-    :param ssh:
-    :param env:
-    :param sysroot:
-    :param api:
-    :param kwargs:
-    :return:
+    This code is taken from the pwntools gdb module under MIT license:
+    https://github.com/Gallopsled/pwntools/blob/c45e92d78b3fc6ecf0a3b839417bbaee2e54637c/pwnlib/gdb.py#L366
     """
-    if isinstance(args, six.integer_types + (pwnlib.tubes.process.process,
-                                             pwnlib.tubes.ssh.ssh_channel)):
+    if isinstance(args, six.integer_types + (pwnlib.tubes.process.process, pwnlib.tubes.ssh.ssh_channel)):
         log.error("Use gdb.attach() to debug a running process")
 
     if isinstance(args, (bytes, six.text_type)):
@@ -389,7 +402,7 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
     orig_args = args
 
     runner = pwnlib.gdb._get_runner(ssh)
-    which = pwnlib.gdb._get_which(ssh)
+    which  = pwnlib.gdb._get_which(ssh)
     gdbscript = gdbscript or ''
 
     if api and runner is not pwnlib.tubes.process.process:
@@ -410,8 +423,7 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
         qemu_user = pwnlib.qemu.user_path()
         sysroot = sysroot or pwnlib.qemu.ld_prefix(env=env)
         if not qemu_user:
-            log.error("Cannot debug %s binaries without appropriate "
-                      "QEMU binaries" % pwnlib.context.context.arch)
+            log.error("Cannot debug %s binaries without appropriate QEMU binaries" % pwnlib.context.context.arch)
         if pwnlib.context.context.os == 'baremetal':
             qemu_args = [qemu_user, '-S', '-gdb', 'tcp::' + str(qemu_port)]
         else:
@@ -420,12 +432,9 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
             qemu_args += ['-L', sysroot]
         args = qemu_args + args
 
-    # Use a sane default sysroot for Android
-    if not sysroot and pwnlib.context.context.os == 'android':
-        sysroot = 'remote:/'
-
     # Make sure gdbserver/qemu is installed
     if not which(args[0]):
+
         log.error("%s is not installed" % args[0])
 
     if not ssh:
@@ -441,39 +450,55 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
     gdbserver.executable = exe
 
     # Find what port we need to connect to
-    if ssh or pwnlib.context.context.native or (pwnlib.context.context.os
-                                                == 'android'):
+    if pwnlib.context.context.native or (pwnlib.context.os == 'android'):
         port = pwnlib.gdb._gdbserver_port(gdbserver, ssh)
     else:
         port = qemu_port
 
     host = '127.0.0.1'
-    if not ssh and pwnlib.context.context.os == 'android':
-        host = pwnlib.context.context.adb_host
+    if not ssh and pwnlib.context.os == 'android':
+        host = pwnlib.context.adb_host
 
-    tmp = test_attach((host, port), exe=exe, gdbscript=gdbscript, ssh=ssh,
-                      sysroot=sysroot, api=api)
-    if api:
-        _, gdb = tmp
-        gdbserver.gdb = gdb
+    tmp = test_attach((host, port), exe=exe, gdbscript=gdbscript, ssh=ssh, sysroot=sysroot, api=api)
+    _, gdb = tmp
+    gdbserver.gdb = gdb
 
     # gdbserver outputs a message when a client connects
     garbage = gdbserver.recvline(timeout=1)
 
     # Some versions of gdbserver output an additional message
-    garbage2 = gdbserver.recvline_startswith(b"Remote debugging from host ",
-                                             timeout=2)
+    garbage2 = gdbserver.recvline_startswith(b"Remote debugging from host ", timeout=2)
 
-    return gdbserver
-
+    return gdbserver, gdb
 
 
-
+# Copyright (c) 2015 Gallopsled et al.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
                 sysroot=None, api=True):
     """
     Minor change to the gdb.attach() function, runs gdb as a subprocess
     rather than in a terminal window.
+
+    The majority of this code is taken from the pwntools gdb module under MIT license:
+    https://github.com/Gallopsled/pwntools/blob/c45e92d78b3fc6ecf0a3b839417bbaee2e54637c/pwnlib/gdb.py#L720
 
     :param target:
     :param gdbscript:
@@ -488,8 +513,6 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
         log.warn_once("Skipping debug attach since "
                       "pwnlib.context.context.noptrace==True")
         return
-
-
 
     # if gdbscript is a file object, then read it; we probably need to run some
     # more gdb script anyway
@@ -753,7 +776,11 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
 
     # create a thread for receiving breakpoint notifications
     BgServingThread(conn, callback=lambda: None)
-    gdb_proc = ExtendedGdb(conn, target.argv[0].decode())
+    argv0 = ""
+    if isinstance(target, pwnlib.tubes.process.process):
+        argv0 = target.argv[0]
+
+    gdb_proc = ExtendedGdb(conn, argv0)
     gdb_proc._target = target
 
     return gdb_pid, gdb_proc

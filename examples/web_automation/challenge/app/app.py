@@ -39,7 +39,11 @@ def hidden():
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
-    msg = ""
+    if "logged_in" in session:
+        if session["logged_in"] is True:
+            msg = "Logged in"
+    else:
+        msg = "Not logged in"
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         user = request.form["username"]
         passwd = request.form["password"]
