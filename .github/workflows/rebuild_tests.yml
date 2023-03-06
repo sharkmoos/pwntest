@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted
     permissions:
       contents: write
-      workflows: write
+      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
