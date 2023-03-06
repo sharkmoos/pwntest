@@ -138,10 +138,10 @@ class PwnTest:
         listener_thread = threading.Thread(target=self.run_socket_listener, args=("0.0.0.0", local_port, socket_details, timeout))
         listener_thread.start()
 
+        pwnlib.replacements.sleep(2)
         # create thread to run the exploit function
         exploit_thread = threading.Thread(target=exploit_function, args=(self.remote_ip, self.remote_port, local_host, local_port))
         exploit_thread.start()
-        pwnlib.replacements.sleep(1)
 
         listener_thread.join()  # wait for the listener to connect or timeout
         if socket_details:  # if there are details, a connection was made
