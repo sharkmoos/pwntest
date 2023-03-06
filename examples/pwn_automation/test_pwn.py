@@ -1,9 +1,10 @@
 import sys
+import os
 from exploit import get_flag as exploit_flag
 from exploit import get_shell as exploit_shell
 import pytest
 
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
+sys.path.append(os.getcwd())
 import pwntest
 
 tester = pwntest.PwnTest("127.0.0.1", 9001, binary_path="examples/pwn_automation/challenge/challenge")

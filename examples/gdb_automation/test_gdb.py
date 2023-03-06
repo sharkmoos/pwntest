@@ -5,8 +5,9 @@ import pwnlib.context
 import pwnlib.elf
 import pwnlib.tubes
 import sys
+import os
 
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
+sys.path.append(os.getcwd())
 import pwntest
 
 # elf = pwnlib.context.binary = pwnlib.elf.ELF('demo')
