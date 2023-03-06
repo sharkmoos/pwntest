@@ -101,7 +101,7 @@ class ActionBuilder:
                         "AUTHOR": challenge_author,
                         # "PORT": challenge_ports,
                         "TEST_CASE_NAME_PATH": docker_path,
-                        "CHALLENGE_PATH": challenge_path,
+                        "CHALLENGE_PATH": challenge_path if challenge_path.endswith("/") else challenge_path + "/",
                         "DOCKER": is_docker,
                         "RUNS_ON": runs_on,
                         "INLINE_PORTS": inline_ports,
