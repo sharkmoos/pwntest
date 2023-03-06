@@ -18,7 +18,7 @@ jobs:
           python-version: '3.10'
       - name: Install dependencies and Regenerate Actions
         run: |
-          pip3 install ruaml.yaml # pwntest
+          pip3 install ruamel.yaml # pwntest
           python3 pwntest/commandline/pwntest_action.py -r -m pwntest_manifest.yml
           # pwntest_action -r -m pwntest_manifest.yml
       - name: Commit changes
