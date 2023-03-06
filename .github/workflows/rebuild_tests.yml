@@ -5,12 +5,14 @@ name: Auto-regenerate Tests
 
 on: [ "push" ]
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   create_tests:
     runs-on: self-hosted
-    permissions:
-      contents: write
-      actions: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
