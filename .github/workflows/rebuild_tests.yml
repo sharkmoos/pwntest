@@ -3,7 +3,6 @@
 
 name: Auto-regenerate Tests
 
-on: [ "push" ]
 
 jobs:
   build_and_test:
