@@ -743,12 +743,12 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
             except retriable:
                 time.sleep(0.1)
         else:
-            # Check to see if RPyC is installed at all in GDB
-            rpyc_check = [gdb_binary, '--nx', '-batch', '-ex',
-                          'python import rpyc; import sys; sys.exit(123)']
-
-            if 123 != pwnlib.tubes.process.process(rpyc_check).poll(block=True):
-                log.error('Failed to connect to GDB: rpyc is not installed')
+            # # Check to see if RPyC is installed at all in GDB
+            # rpyc_check = [gdb_binary, '--nx', '-batch', '-ex',
+            #               'python import rpyc; import sys; sys.exit(123)']
+            #
+            # if 123 != pwnlib.tubes.process.process(rpyc_check).poll(block=True):
+            #     log.error('Failed to connect to GDB: rpyc is not installed')
 
             # Check to see if the socket ever got created
             if not os.path.exists(socket_path):
