@@ -39,8 +39,9 @@ class BinaryAutomation:
         self.remote_port: int = port
         self.remote_test: bool = False
         self.local_test: bool = False
-        self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
-        elf = self.elf
+
+        if self.binary_path:
+            self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
 
         self.blob_strings_file: str = ""
 

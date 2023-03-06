@@ -12,8 +12,9 @@ lhost, lport = "host.docker.internal", 4444
 tester = pwntest.PwnTest(remote_target=rhost, port=rport)
 
 
-def assert_partial_path():
-    assert tester.WebAutomation.assert_page_codes({"/": 200, "/hidden": 404})
+# def test_partial_path():
+#     tester.WebAutomation.set_target(f"http://{rhost}:{rport}")
+#     assert tester.WebAutomation.assert_page_codes({"/": 200, "/hidden": 404})
 
 
 def test_assert_redirect():
@@ -43,19 +44,18 @@ def test_assert_page_not_found():
 
 def test_reverse_shell():
     shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code)
-    if not shell:
-        pytest.fail("Failed to get reverse shell")
+    assert shell
     shell.sendline(b"echo FOOBAR")
-    assert b"FOOBAR" in shell.recvline()
+    assert b"FOOBAR" in shell.recvline().strip()
     shell.close()
 
 
 # TODO: Uncomment or add fixture so it doesnt take 5 seconds
-# def test_fail_reverse_shell():
-#     def exploit_code_fail(p1,p2,p3,p4):
-#         return False
-#     shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code_fail)
-#     assert not shell
+def test_fail_reverse_shell():
+    def exploit_code_fail(p1,p2,p3,p4):
+        return False
+    shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code_fail, timeout=1)
+    assert not shell
 
 
 def test_set_target():
@@ -142,8 +142,15 @@ def test_assert_string_on_page():
 
 
 def test_get_element_contents_by_id():
+    tester.WebAutomation.reset_session()
     assert not tester.WebAutomation.get_element_contents_by_id(
         "/", "message", session=True) == "Logged in"
 
+    session = tester.WebAutomation.get_session()
+    session.post("http://127.0.0.1:9004/",
+                 data={"username": "pwntest", "password": "foobar"})
     assert tester.WebAutomation.get_element_contents_by_id(
+        "/", "message", session=True) == "Logged in"
+
+    assert not tester.WebAutomation.get_element_contents_by_id(
         "/", "FOOBAR", session=True) == "Logged in"

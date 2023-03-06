@@ -122,10 +122,11 @@ class PwnTest:
             self.log.debug("Priv esc failed")
             return False
 
-    def run_reverse_shell_exploit(self, local_host, local_port, exploit_function) -> pwnlib.tubes.listen.listen or None:
+    def run_reverse_shell_exploit(self, local_host, local_port, exploit_function, timeout: float = 5) -> pwnlib.tubes.listen.listen or None:
         """
         Runs an exploit function and listens for a reverse shell connection in a separate thread.
 
+        :param timeout: The timeout for the listener
         :param local_host: The local interface to listen on
         :param local_port: The local port to listen on
         :param exploit_function: A Python function object that takes the remote host and port as arguments
@@ -134,7 +135,7 @@ class PwnTest:
         socket_details: dict = {}
 
         # create a listener thread
-        listener_thread = threading.Thread(target=self.run_socket_listener, args=("0.0.0.0", local_port, socket_details))
+        listener_thread = threading.Thread(target=self.run_socket_listener, args=("0.0.0.0", local_port, socket_details, timeout))
         listener_thread.start()
 
         # create thread to run the exploit function

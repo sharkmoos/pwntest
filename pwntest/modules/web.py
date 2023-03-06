@@ -248,7 +248,7 @@ class WebAutomation:
         """
 
         if not isinstance(url, str):
-            self.log.error("Invalid type for parameter 'url'")
+            self.log.warning("Invalid type for parameter 'url'")
             return ""
 
         r = self.session if session else requests
@@ -267,4 +267,4 @@ class WebAutomation:
 
         except requests.exceptions.Timeout:
             self.log.warning("Request timed out.")
-        return element_data
+        return element_data.text
