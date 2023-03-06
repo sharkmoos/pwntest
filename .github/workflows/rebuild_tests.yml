@@ -3,7 +3,6 @@
 
 name: Auto-regenerate Tests
 
-on: [ "push" ]
 
 permissions:
   contents: write
