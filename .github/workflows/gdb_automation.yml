@@ -29,7 +29,7 @@ jobs:
         run: |
           pip3 install pytest
           
-          poetry run pytest examples/gdb_automation/
+          pytest examples/gdb_automation/
         env:
           CONTAINER_HOST: localhost
 
