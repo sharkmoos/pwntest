@@ -10,8 +10,8 @@ import pwnlib.log
 import pwnlib.replacements
 import pwnlib.filesystem
 
-import pwntest.modules.extended_gdb as extended_gdb
 
+import pwntest.modules.extended_gdb as extended_gdb
 from pwntest.modules.binary import BinaryAutomation
 from pwntest.modules.web import WebAutomation
 
@@ -50,12 +50,24 @@ class PwnTest:
         #       where these are only initialised the first time they're used or something
         # Perhaps could use "isinstance" to check if the object has been initialised in the call function,
         # and if not initialise it.
-        self.BinaryAutomation: BinaryAutomation = BinaryAutomation(binary_path=binary_path, ip=remote_target, port=port)
+
+        if binary_path:
+            self.BinaryAutomation: BinaryAutomation = BinaryAutomation(binary_path=binary_path, ip=remote_target, port=port)
+        else:
+            self.BinaryAutomation = self._refuse_binary_init
         self.WebAutomation: WebAutomation = WebAutomation(rhost=remote_target, rport=port)
+        self.extended_gdb = extended_gdb
         self.SSHAutomation: SSHAutomation
 
         if ssh:
             self.SSHAutomation = SSHAutomation(ip=remote_target, port=port, ssh=ssh)
+
+    @staticmethod
+    def _refuse_binary_init() -> None:
+        """
+        Refuse to use binary a class. Used when the binary path is not specified in the constructor.
+        """
+        raise NotImplementedError(f"{name} is not initialised. Initialise it in the PwnTest constructor.")
 
     def assert_priv_esc(self, user: str, priv_script: str, conn) -> bool:
         """

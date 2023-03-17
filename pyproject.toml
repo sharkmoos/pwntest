@@ -33,3 +33,6 @@ filterwarnings = [
     "ignore:.*is deprecated:DeprecationWarning",
     "ignore:.*I/O operation on closed file:ResourceWarning"
 ]
+markers = [
+    "example: marks tests as example (deselect with '-m \"not example\"')"
+]

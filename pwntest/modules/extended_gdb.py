@@ -2,6 +2,8 @@
 TODO:
     - make get_section_base not need a pid
     - Remove unnecessary code and args from test_debug and test_attach
+    - Setting breakpoints etc causes a crash if the program is running. Do a check
+        before actually doing these ops
 """
 import os
 import subprocess
@@ -46,7 +48,17 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :param binary_path:
         """
         super().__init__(conn)
-        self.binary_path: str = binary_path.decode()
+
+        # if initialised with gdb.debug, the name may not be passed
+        self.binary_base = None
+        self.section_bases: dict = {}
+
+        if not binary_path:
+            with open(f"/proc/{self.selected_inferior().pid}/cmdline", "rt") as f:
+                self.binary_path = f.read().strip().strip("\x00")
+                print("Binary path: ", self.binary_path)
+        else:
+            self.binary_path: str = binary_path.decode()
 
     def __del__(self) -> None:
         """
@@ -65,7 +77,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
     def _process_close(self) -> None:
         """
-        To be used by test_close() method, to close gdb automatically
+        To be used by close() method, to close gdb automatically
         when the user closes the process.
         :return:
         """
@@ -116,7 +128,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :return: PID of current debugged process.
             Returns 0 if no process is running.
         """
-        pid: int = self.inferiors()[0].pid
+        pid: int = self.selected_inferior().pid
         log.debug(f"Current PID is {pid}")
         if not pid:
             log.info("Program is not running")
@@ -128,38 +140,38 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return: None
         """
-        self.quit()
 
-        if self._target.proc is None:
-            return
+        try:
+            self.quit()
 
-        # First check if we are already dead
-        self._target.poll()
+            if self._target.proc is None:
+                return
 
-        # close file descriptors
-        for fd in [self._target.proc.stdin,
-                   self._target.proc.stdout, self._target.proc.stderr]:
-            if fd is not None:
-                try:
-                    fd.close()
-                except IOError as e:
-                    if e.errno != self.EPIPE:
-                        raise
+            # First check if we are already dead
+            self._target.poll()
 
-        if not self._target._stop_noticed:
-            try:
+            # close file descriptors
+            for fd in [self._target.proc.stdin,
+                       self._target.proc.stdout, self._target.proc.stderr]:
+                if fd is not None:
+                    try:
+                        fd.close()
+                    except IOError as e:
+                        if e.errno != self.EPIPE:
+                            raise
+
+            if not self._target._stop_noticed:
                 self._target.proc.kill()
                 self._target.proc.wait()
                 self._target._stop_noticed = time.time()
                 self.info('Stopped process %r (pid %i)' %
                           (self.program, self.pid))
-            except OSError:
-                pass
-            except EOFError:
-                pass
+        except OSError:
+            pass
+        except EOFError:
+            pass
 
-    @staticmethod
-    def get_section_base(current_pid: int, section_name: str) -> int:
+    def get_section_base(self, section_name: str) -> int:
         """
         Get the base address of a section.
          Should match the name from /proc/<pid>/maps
@@ -168,14 +180,15 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :param section_name: Name of section to get base address of
         :return: Base address of section or -1 if not found
         """
-        if not current_pid:
-            log.warning("No PID specified")
-            return -1
 
-        # check file exists
+        if section_name in self.section_bases:
+            return self.section_name_base[section_name]
+
+        current_pid: int = self.get_pid()
+        # check file exists, process could have ended
         if not os.path.exists(f"/proc/{current_pid}/maps"):
             log.warning(f"File '/proc/{current_pid}/maps' does not exist")
-            return -1
+            return 0
 
         with open(f"/proc/{current_pid}/maps", "rt") as maps_file:
             for line in maps_file:
@@ -187,10 +200,11 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
                 else f"[{section_name}]") == current_section_name:
                     base: int = int(line.split("-")[0], 16)
                     log.debug(f"{section_name}: {hex(base)}")
+                    self.section_bases[section_name] = base
                     return base
 
         log.warning(f"Section '{section_name}' not found")
-        return -1
+        return 0
 
     def get_binary_base(self) -> int:
         """
@@ -198,15 +212,11 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return: Base address of binary. -1 if not found
         """
-        current_pid: int = self.get_pid()
-        if not current_pid:
-            return -1
-
-        binary_base: int = self.get_section_base(current_pid, self.binary_path)
-        if binary_base == -1:
-            log.warning("Could not find base address of binary")
-
-        return binary_base
+        if "binary_base" not in self.section_bases:
+            self.section_bases["binary_base"]: int = self.get_section_base(self.binary_path)
+            if self.binary_base == 0:
+                log.warning("Could not find base address of binary")
+        return self.section_bases["binary_base"]
 
     def address_from_symbol(self, symbol: str) -> int:
         """
@@ -387,8 +397,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
-               sysroot=None, api=True, **kwargs):
+def debug(args, gdbscript=None, exe=None, ssh=None, env=None,
+          sysroot=None, api=True, **kwargs):
     """
     Identical to the gdb.debug() function, runs gdb as a subprocess rather than in a terminal window.
     This code is taken from the pwntools gdb module under MIT license:
@@ -399,6 +409,9 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
 
     if isinstance(args, (bytes, six.text_type)):
         args = [args]
+
+    if isinstance(args, str):
+        args = [args.encode()]
 
     orig_args = args
 
@@ -459,7 +472,7 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
     if not ssh and pwnlib.context.os == 'android':
         host = pwnlib.context.adb_host
 
-    tmp = test_attach((host, port), exe=exe, gdbscript=gdbscript, ssh=ssh, sysroot=sysroot, api=api)
+    tmp = attach((host, port), exe=exe, gdbscript=gdbscript, ssh=ssh, sysroot=sysroot, api=api)
     _, gdb = tmp
     gdbserver.gdb = gdb
 
@@ -491,8 +504,8 @@ def test_debug(args, gdbscript=None, exe=None, ssh=None, env=None,
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
-                sysroot=None, api=True):
+def attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
+           sysroot=None, api=True):
     """
     Minor change to the gdb.attach() function, runs gdb as a subprocess
     rather than in a terminal window.
@@ -776,7 +789,7 @@ def test_attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
 
     # create a thread for receiving breakpoint notifications
     BgServingThread(conn, callback=lambda: None)
-    argv0 = ""
+    argv0 = b""
     if isinstance(target, pwnlib.tubes.process.process):
         argv0 = target.argv[0]
 

@@ -17,7 +17,7 @@ class BinaryAutomation:
     with executables.
     """
 
-    def __init__(self, binary_path: str, ip: str = "", port: int = 0) -> None:
+    def __init__(self, binary_path: str = "", ip: str = "", port: int = 0) -> None:
         """
         Initialise the BinaryAutomation class. Inherits the relevant PwnTestBase attributes.
 
@@ -31,7 +31,6 @@ class BinaryAutomation:
         >>> import pwntest
         >>> tester = pwntest.PwnTest("demo")
         """
-        self.process: pwnlib.tubes.process.process = None
         self.log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
         self.binary_path: str = binary_path
@@ -40,20 +39,18 @@ class BinaryAutomation:
         self.remote_test: bool = False
         self.local_test: bool = False
 
+        self.blob_strings_file: tempfile.mkstemp = None
+        self.blob_strings_file_name: str = ""
+
         if self.binary_path:
             self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
-
-        self.blob_strings_file: str = ""
 
     def __del__(self) -> None:
         """
         Clean up the BinaryAutomation class
         """
-        if self.process:
-            self.process.close()
-
         if self.blob_strings_file:
-            os.remove(self.blob_strings_file)
+            os.remove(self.blob_strings_file_name)
 
     def assert_exploit(self, exploit, flag="", flag_path="", remote: bool = True) -> bool:
         """
@@ -100,11 +97,7 @@ class BinaryAutomation:
         if exploit.__code__.co_argcount != 2:
             raise ValueError("Exploit function must have 2 parameters: (ip, port)")
 
-        try:
-            output = exploit(self.remote_ip, self.remote_port)
-        except Exception as e:
-            self.log.warning("Exploit crashed due to: %s" % e)
-            return False
+        output = exploit(self.remote_ip, self.remote_port)
 
         if not output:
             self.log.debug("Exploit failed.")
@@ -244,7 +237,10 @@ class BinaryAutomation:
         :param length: Minimum length of string to extract.
         """
 
-        self.blob_strings_file: str = tempfile.mkstemp()[1]
+        self.blob_strings_file: tempfile.mkstemp = tempfile.mkstemp()
+        self.blob_strings_file_name: str = self.blob_strings_file[1]
+
+
 
         ascii_chars: str = r"A-Za-z0-9/\-:.,_$%'()[\]<> "
         expression: str = '[%s]{%d,}' % (ascii_chars, length)
@@ -252,7 +248,7 @@ class BinaryAutomation:
 
         blob_strings: list = []
         with open(self.elf.path, "rb") as in_file, \
-                open(self.blob_strings_file, "w") as out_file:
+                open(self.blob_strings_file_name, "w") as out_file:
             while True:
                 data: bytes = in_file.read(4096)
                 if not data:
@@ -270,10 +266,10 @@ class BinaryAutomation:
         :param length: Get strings of length
         :return: List of strings of length > length
         """
-        if not self.blob_strings_file:
+        if not self.blob_strings_file_name:
             self._extract_binary_strings()
 
-        with open(self.blob_strings_file, "rt") as in_file:
+        with open(self.blob_strings_file_name, "rt") as in_file:
             strings: list = in_file.readlines()
 
         return [string if len(string) > length else None for string in strings]

@@ -56,7 +56,7 @@ class WebAutomation:
         return self.session
 
     @staticmethod
-    def is_full_url(text) -> bool:
+    def is_full_url(url: str) -> bool:
         """
         Check if a string is a full URL
 
@@ -67,8 +67,11 @@ class WebAutomation:
             True if string is a full URL, False otherwise.
         """
 
+        if not isinstance(url, str):
+            raise TypeError(f"is_full_url argument 'url' must be str, not '{url}'")
+
         # TODO: see if there is a better way to do this
-        if text.startswith("http://") or text.startswith("https://"):
+        if url.startswith("http://") or url.startswith("https://"):
             return True
         return False
 
@@ -137,8 +140,10 @@ class WebAutomation:
                 url = self.make_full_url(url)
             response: requests.models.Response = r.get(url, timeout=self.timeout)
             return string in response.text
-        except requests.exceptions.Timeout:
-            self.log.warning("Request timed out.")
+        except (requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout) as e:
+            self.log.warning(f'Error connecting: %s', e)
 
         return False
 
@@ -162,13 +167,9 @@ class WebAutomation:
         # they should be caught by the history tracking
         return response.is_redirect or len(response.history) != 0
 
-    def assert_page_not_found(self, request_method, url: str) -> bool:
+    def _assert_page_not_found(self, request_method, url: str) -> bool:
         if not callable(request_method):
             raise TypeError("'request_method' must be callable")
-
-        if not isinstance(url, str):
-            self.log.error("Invalid type for parameter 'pages'")
-            return False
 
         if not self.is_full_url(url):
             url: str = self.make_full_url(url)
@@ -187,7 +188,11 @@ class WebAutomation:
         :return: True if the page returns a 404 status code, False otherwise
         """
         r = self.session if session else requests
-        return self.assert_page_not_found(r.get, page)
+
+        if not self.is_full_url(page):
+            page = self.make_full_url(page)
+
+        return self._assert_page_not_found(r.get, page)
 
     def assert_post_page_not_found(self, page: str, session: bool = True):
         """
@@ -200,10 +205,12 @@ class WebAutomation:
         """
         r = self.session if session else requests
 
-        found = self.assert_page_not_found(r.post, page)
-        return found
+        if not self.is_full_url(page):
+            page = self.make_full_url(page)
 
-    def assert_page_codes(self, pages: dict, session: bool = True):
+        return self._assert_page_not_found(r.post, page)
+
+    def assert_page_codes(self, pages: dict, allow_redirects=False, session: bool = True):
         """
         Pass a dictionary of dictionaries of the format
 
@@ -220,51 +227,57 @@ class WebAutomation:
         """
         r = self.session if session else requests
 
-        for page in pages.keys():
-            if not self.is_full_url(page):
-                page = self.make_full_url(page)
-            match page["type"]:
-                case "POST":
-                    response = r.post(url=page)
-                case "GET":
-                    response = r.get(url=page)
+        for page in pages:
+            url = page
+            page = pages[page]
+            if not isinstance(page["status_code"], int):
+                raise TypeError(f"Invalid type '{type(page['status_code'])}' for parameter 'status_code'")
+            if not isinstance(page["type"], str):
+                raise TypeError(f"Invalid type '{type(page['type'])}' for parameter 'type'")
+            if not self.is_full_url(url):
+                url = self.make_full_url(url)
+            match page["type"].upper():
+                case "POST" | "post":
+                    response = r.post(url=url, allow_redirects=allow_redirects)
+                case "GET" | "get":
+                    response = r.get(url=url, allow_redirects=allow_redirects)
                 case _:
                     self.log.warning(f"Request type '{page['type']}' not supported. Returning False")
                     return False
-            if response.status_code == page["status_code"]:
+            if response.status_code != page["status_code"]:
+                self.log.info("Page %s returned status code %s, expected %s", url, response.status_code, page["status_code"])
                 return False
-
         return True
 
-    def get_element_contents_by_id(self, url: str, element: str, session: bool = True) -> str:
+    def get_element_contents_by_id(self, url: str, element: str, allow_redirects=True, session: bool = True) -> str:
         """
         Get the contents of an element on a page. Only the first element of a page will be returned, as
         HTML specification states that IDs should be unique anyway.
 
+        :param allow_redirects:
         :param session:
         :param url: URL to check
         :param element: Element to get contents of
         :return: Contents of element.
         """
 
-        if not isinstance(url, str):
-            self.log.warning("Invalid type for parameter 'url'")
-            return ""
-
         r = self.session if session else requests
-
-        element_data: str = ""
         try:
             if not self.is_full_url(url):
                 url = self.make_full_url(url)
-            response: requests.models.Response = r.get(url, timeout=self.timeout)
+            response: requests.models.Response = r.get(url, timeout=self.timeout, allow_redirects=allow_redirects)
+            if response.status_code != 200:
+                return ""
             soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
-            print(soup)
             element_data = soup.find(id=element)
             if not element_data:
                 self.log.info(f"Element '{element}' not found on page '{url}'")
                 return ""
 
-        except requests.exceptions.Timeout:
-            self.log.warning("Request timed out.")
+        except (requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout) as e:
+            self.log.warning(f'Error connecting: %s', e)
+            return ""
+
         return element_data.text

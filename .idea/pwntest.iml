@@ -2,6 +2,7 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$/../pwntest_example" />
     <orderEntry type="jdk" jdkName="Python 3.10.9 WSL (kali-linux): (/home/user/.cache/pypoetry/virtualenvs/pwntest--ICcUePV-py3.10/bin/python3.10)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
