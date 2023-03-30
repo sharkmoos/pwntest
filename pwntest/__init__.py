@@ -67,7 +67,7 @@ class PwnTest:
         """
         Refuse to use binary a class. Used when the binary path is not specified in the constructor.
         """
-        raise NotImplementedError(f"{name} is not initialised. Initialise it in the PwnTest constructor.")
+        raise NotImplementedError("is not initialised. Initialise it in the PwnTest constructor.")
 
     def assert_priv_esc(self, user: str, priv_script: str, conn) -> bool:
         """

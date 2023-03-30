@@ -1,6 +1,5 @@
 """
 TODO:
-    - make get_section_base not need a pid
     - Remove unnecessary code and args from test_debug and test_attach
     - Setting breakpoints etc causes a crash if the program is running. Do a check
         before actually doing these ops
@@ -67,6 +66,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return:
         """
+        self._target.close() # TODO: check if this works properly
         try:
             current_pid: int = self.get_pid()
             gdb_procs.pop(current_pid)
@@ -164,8 +164,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
                 self._target.proc.kill()
                 self._target.proc.wait()
                 self._target._stop_noticed = time.time()
-                self.info('Stopped process %r (pid %i)' %
-                          (self.program, self.pid))
+
+            self.__del__()
         except OSError:
             pass
         except EOFError:
@@ -237,7 +237,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         return 0
 
-    def read_mem(self, addr: int, length: int):
+    def read_mem(self, addr: int, length: int) -> bytes:
         """
         Read memory from a given address
 
@@ -250,11 +250,11 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
             log.warning("Reading from memory while program is running can "
                         "cause unexpected behaviour")
 
-        return self.inferiors()[0].read_memory(addr, length)
+        return self.inferiors()[0].read_memory(addr, length).tobytes()
 
-    def read_reg(self, register: str):
+    def read_reg(self, register: str) -> int:
         """
-        Read value from a register. Wrapper around newest_frame().read_register()
+        Read value from a register.
 
         :param register: Register to read from
         :return: gdb.Value object of the value.
@@ -271,7 +271,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         if value == "void":
             log.warning(f"Register '{register}' does not exist in this context")
 
-        return value
+        return int(value)
 
     def read_regs(self, registers: list) -> dict:
         """
@@ -281,10 +281,6 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :param registers: List of registers to read from
         :return: Dict of register: gdb.Value
         """
-
-        if self.is_running():
-            log.warning("Reading from memory while program is running can "
-                        "cause unexpected behaviour")
 
         results: dict = {}
         for register in registers:
@@ -300,8 +296,12 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :param value: Value to write
         :return: True if successful, False if not
         """
+        if self.is_running():
+            log.warning("Writing to registers while program is running can "
+                        "cause unexpected behaviour")
+
         if not register.startswith("$"):
-            register: str = "$" + register
+            register = "$" + register
 
         if self.parse_and_eval(register) == "void":
             log.warning(f"Register '{register}' does not exist in this context")
@@ -326,6 +326,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :param value: Value to write
         :return: None
         """
+        if self.is_running():
+            log.warning("Writing to memory while program is running can "
+                        "cause unexpected behaviour")
+
         self.inferiors()[0].write_memory(address, value)
         if self.read_mem(address, len(value)) != value:
             log.warning(f"Failed to write to memory '{hex(address)}'")
@@ -342,7 +346,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :return:
         """
         if self.is_running():
-            log.warning("Reading from memory while program is running can "
+            log.warning("Reading from registers while program is running can "
                         "cause unexpected behaviour")
 
         register_value: int = self.read_reg(register)
@@ -358,6 +362,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         :return: Dictionary of register names and values with fields matched
             (bool), expected (int), actual (int)
         """
+
+        # TODO: See if this implementation of reading registers
+        #  or parse and eval is better
+
         if self.is_running():
             log.warning("Reading from memory while program is running can "
                         "cause unexpected behaviour")

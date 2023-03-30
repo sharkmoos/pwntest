@@ -8,6 +8,7 @@ import pwnlib.elf
 import pwnlib.context
 import pwnlib.rop
 import pwnlib.asm
+from elftools.common.exceptions import ELFError
 
 
 # class BinaryAutomation(PwnTestBase):
@@ -43,7 +44,10 @@ class BinaryAutomation:
         self.blob_strings_file_name: str = ""
 
         if self.binary_path:
-            self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
+            try:
+                self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
+            except ELFError:
+                self.log.warning("Could not load ELF file. Functions that require an ELF file will not work.")
 
     def __del__(self) -> None:
         """
@@ -88,6 +92,7 @@ class BinaryAutomation:
         >>>     return s
         >>> tester.BinaryAutomation.assert_exploit(exploit, shell=True, remote=False)
         """
+        # TODO: Allow a local or remote exploit that has args/kwargs
 
         # check the exploit parameter is callable
         if not callable(exploit):
@@ -221,6 +226,7 @@ class BinaryAutomation:
             if deep_search:
                 self.log.debug("Performing deep search, this could take a while...")
                 # assemble the code and try and find a match in the binary
+                # TODO: Look at using ROPgadget instead
                 code = pwnlib.asm.asm("\n".join(gadget), arch=self.elf.arch)
                 try:
                     gadget_addr = next(self.elf.search(code, executable=True))
