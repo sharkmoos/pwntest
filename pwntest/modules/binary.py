@@ -76,7 +76,6 @@ class BinaryAutomation:
 
         **Remote Exploit**
 
-
         >>> def exploit(ip, port):
         >>>     s = remote(ip, port)
         >>>     s.sendline(b"cat /flag")
@@ -90,7 +89,7 @@ class BinaryAutomation:
         >>>     s.sendline(b"FOOBAR")
         >>>     # shell dropped, so s is a tube into the shell
         >>>     return s
-        >>> tester.BinaryAutomation.assert_exploit(exploit, shell=True)
+        >>> tester.BinaryAutomation.assert_exploit(exploit=exploit_shell)
         """
         # TODO: Allow a local or remote exploit that has args/kwargs
 
