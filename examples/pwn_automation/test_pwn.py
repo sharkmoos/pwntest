@@ -21,8 +21,10 @@ def bad_exploit():
 @pytest.mark.example
 def test_assert_exploit():
     assert tester.BinaryAutomation.assert_exploit(exploit=exploit_flag, flag="cueh{", flag_path="/flag")
-    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell, remote=True)
+    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell)
 
+    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_flag, flag="cueh{", flag_path="/flag", ip=tester.remote_ip, port=tester.remote_port)
+    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell, ip=tester.remote_ip, port=tester.remote_port)
 
 @pytest.mark.example
 def test_assert_symbol_exists():
