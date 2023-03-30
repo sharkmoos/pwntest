@@ -69,7 +69,7 @@ def test_memory_read():
     api.continue_and_wait()
 
     # pointer in rdi should be "FOOBAR"
-    memory = b"".join([i for i in api.read_mem(api.read_reg("rdi"), 6)])
+    memory = api.read_mem(api.read_reg("rdi"), 6)
 
     print(f"Memory: {memory}")
     assert memory == b"FOOBAR"
@@ -90,7 +90,7 @@ def test_write_mem():
     # write and check
     data = b"A" * 8
     api.write_mem(stack_addr, data)
-    new_data = b"".join([i for i in api.read_mem(stack_addr, 8)])
+    new_data = api.read_mem(stack_addr, 8)
     assert new_data == data
     api.quit()
 
