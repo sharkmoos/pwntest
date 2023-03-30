@@ -56,7 +56,7 @@ class BinaryAutomation:
         if self.blob_strings_file:
             os.remove(self.blob_strings_file_name)
 
-    def assert_exploit(self, exploit, flag="", flag_path="", remote: bool = True) -> bool:
+    def assert_exploit(self, exploit, flag="", flag_path="", **kwargs) -> bool:
         """
         Assert an exploit drops a shell or returns a flag. A few important things
 
@@ -68,7 +68,7 @@ class BinaryAutomation:
         :param exploit: a python function that either returns a shell or a flag string, as specified by params supplied to the function.
         :param flag: Flag inside the flag file
         :param flag_path: Path to the flag file
-        :param remote: If True, the exploit function will be passed the remote IP and port parameters.
+        :param kwargs: User defined keyword arguments to pass to the exploit function
 
         :return: True if the exploit works, False otherwise
 
@@ -76,12 +76,11 @@ class BinaryAutomation:
 
         **Remote Exploit**
 
-
         >>> def exploit(ip, port):
         >>>     s = remote(ip, port)
         >>>     s.sendline(b"cat /flag")
         >>>     return s.recvline_contains(b"flag{")
-        >>> tester.BinaryAutomation.assert_exploit(exploit, flag="flag{", flag_path="/flag")
+        >>> tester.BinaryAutomation.assert_exploit(exploit, flag="flag{", flag_path="/flag", ip="127.0.0.1", port=4444)
 
         **Local Exploit**
 
@@ -90,7 +89,7 @@ class BinaryAutomation:
         >>>     s.sendline(b"FOOBAR")
         >>>     # shell dropped, so s is a tube into the shell
         >>>     return s
-        >>> tester.BinaryAutomation.assert_exploit(exploit, shell=True, remote=False)
+        >>> tester.BinaryAutomation.assert_exploit(exploit=exploit_shell)
         """
         # TODO: Allow a local or remote exploit that has args/kwargs
 
@@ -98,18 +97,14 @@ class BinaryAutomation:
         if not callable(exploit):
             raise TypeError("Exploit must be a callable function.")
 
-        # check the function has the correct number of parameters
-        if exploit.__code__.co_argcount != 2:
-            raise ValueError("Exploit function must have 2 parameters: (ip, port)")
-
-        output = exploit(self.remote_ip, self.remote_port)
+        output = exploit(**kwargs)
 
         if not output:
             self.log.debug("Exploit failed.")
             return False
 
         if not flag and not flag_path:
-            output.sendline(b"echo FOOBAR")
+            output.sendline(b'echo -ne "FOOBAR\n"')
             passed = b"FOOBAR" in output.recvline_contains(b"FOOBAR", timeout=1)
             output.close()
 
@@ -246,8 +241,6 @@ class BinaryAutomation:
         self.blob_strings_file: tempfile.mkstemp = tempfile.mkstemp()
         self.blob_strings_file_name: str = self.blob_strings_file[1]
 
-
-
         ascii_chars: str = r"A-Za-z0-9/\-:.,_$%'()[\]<> "
         expression: str = '[%s]{%d,}' % (ascii_chars, length)
         pattern: re.Pattern = re.compile(expression.encode())
@@ -261,10 +254,10 @@ class BinaryAutomation:
                     break
                 blob_strings += [i for i in pattern.findall(data)]
             self.log.debug("Found %d strings of length %d or more",
-                               len(blob_strings), length)
+                           len(blob_strings), length)
             out_file.writelines(
                 [string.decode() + "\n" for string in blob_strings]
-                )
+            )
 
     def get_strings(self, length: int = 4) -> list:
         """
@@ -298,4 +291,3 @@ class BinaryAutomation:
             return string == next(self.elf.search(string.encode()))
         except StopIteration:
             return False
-
