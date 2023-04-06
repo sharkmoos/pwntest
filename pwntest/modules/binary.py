@@ -60,10 +60,9 @@ class BinaryAutomation:
         """
         Assert an exploit drops a shell or returns a flag. A few important things
 
-        * A remote exploit must have the following signature: def exploit(ip, port)
-        * A local exploit must have the following signature: def exploit()
-        * flag and flag_path must be supplied together, or not at all. If not supplied, the exploit should drop a shell
-        * If the exploit drops a shell, the shell should be returned by the exploit function
+        * If the exploit drops a shell, the shell should be returned by the exploit function. This is the default if `flag` and `flag_path` are not provided.
+        * If both `flag` and `flag_path` are provided, a tube should be returned by the exploit function and pwntest will check the flag is in flag_path
+        * If flag is provided and not flag_path, pwntest will check the flag is in return value of the exploit function
 
         :param exploit: a python function that either returns a shell or a flag string, as specified by params supplied to the function.
         :param flag: Flag inside the flag file
@@ -109,9 +108,26 @@ class BinaryAutomation:
             output.close()
 
         elif flag and flag_path:
-            passed = flag.encode() in output if isinstance(flag, str) else flag in output
+            output.sendline(f'cat {flag_path}'.encode())
+            if isinstance(flag, str):
+                flag = flag.encode()
+
+            passed = flag.strip() in output.recvline_contains(flag, timeout=1)
+
+        elif flag and not flag_path:
+            if isinstance(flag, str):
+                flag = flag.encode()
+
+            if isinstance(output, str):
+                passed = flag.decode() in output
+            elif isinstance(output, bytes):
+                passed = flag in output
+            else:
+                self.log.error("Return value of exploit function is not a string or bytes object.")
+
         else:
-            raise ValueError("Must supply either (flag and flag_path) or neither.")
+            self.log.warning("Something went terribly wrong.")
+            passed = False
 
         return passed
 

@@ -3,13 +3,13 @@ import threading
 import base64
 import socket
 import tempfile
+import pwd
 
 import pwnlib.context
 import pwnlib.elf
 import pwnlib.log
 import pwnlib.replacements
 import pwnlib.filesystem
-
 
 import pwntest.modules.extended_gdb as extended_gdb
 from pwntest.modules.binary import BinaryAutomation
@@ -134,14 +134,14 @@ class PwnTest:
             self.log.debug("Priv esc failed")
             return False
 
-    def run_reverse_shell_exploit(self, local_host, local_port, exploit_function, timeout: float = 5) -> pwnlib.tubes.listen.listen or None:
+    def run_reverse_shell_exploit(self, local_host, local_port, exploit_function, timeout: float = 5, **kwargs) -> pwnlib.tubes.listen.listen or None:
         """
         Runs an exploit function and listens for a reverse shell connection in a separate thread.
 
         :param timeout: The timeout for the listener
         :param local_host: The local interface to listen on
         :param local_port: The local port to listen on
-        :param exploit_function: A Python function object that takes the remote host and port as arguments
+        :param exploit_function: A Python function object. Must take arguments `local_host`, `local_port`, and any `**kwargs`
         :return: A pwnlib.tubes.listen.listen object if a connection was made, None otherwise
         """
         socket_details: dict = {}
@@ -154,7 +154,9 @@ class PwnTest:
         # create thread to run the exploit function
         exploit_thread = threading.Thread(
             target=exploit_function,
-            args=(self.remote_ip, self.remote_port, local_host, local_port))
+            args=(local_host, local_port,),
+            kwargs=kwargs
+        )
         exploit_thread.start()
 
         listener_thread.join()  # wait for the listener to connect or timeout
@@ -297,26 +299,18 @@ class SSHAutomation:
         elif "keyfile" in ssh:
             self.ssh = self.connect_ssh(ip=ip, port=ssh["port"], user=ssh["user"], keyfile=ssh["keyfile"])
 
-    def assert_download_remote_binary(self, remote_path: str, local_path: str) -> bool:
+    def download_remote_binary(self, remote_path: str, local_path: str) -> bool:
         """
-        Confirms a remote file can be downloaded from the target over SSH
+        Downloads a remote file to the local machine
 
         :param remote_path: The remote path to the file
         :param local_path: The local path to save the file to
         :return: True if the file was downloaded, False otherwise
         """
-        passed: bool = False
-
         remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
         if remote_file.exists:
             self.ssh.download_file(remote_path, local_path)
-            if os.path.isfile(local_path):
-                self.log.debug("Local file exists")
-                os.remove(local_path)
-                passed = True
-        else:
-            self.log.debug("Remote file does not exist")
-        return passed
+            return os.path.isfile(local_path)
 
     def assert_current_user(self, user: str) -> bool:
         """
@@ -325,15 +319,8 @@ class SSHAutomation:
         :param user: expected username
         :return: True if the current user is the expected user, False otherwise
         """
-        passed: bool = False
         if self.ssh.connected():
-            if self.ssh.user == user:
-                passed = True
-            else:
-                self.log.debug(f"Current user is '{self.ssh.user}' not '{user}'")
-        else:
-            self.log.warning("SSH connection not established")
-        return passed
+            return self.ssh.user == user
 
     def assert_file_exists(self, remote_path: str) -> bool:
         """
@@ -342,38 +329,33 @@ class SSHAutomation:
         :param remote_path: Location of the expected file
         :return: True if the file exists, False otherwise
         """
-        passed: bool = False
         if self.ssh.connected():
             remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
-            if remote_file.exists:
-                passed = True
-            else:
-                self.log.debug("Remote file does not exist")
-        else:
-            self.log.warning("SSH connection not established")
+            return remote_file.exists()
 
-        return passed
-
-    def assert_file_owner(self, remote_path: str, user: str) -> bool:
-        """
-        Confirms the owner of a file is the expected user
-
-        :param remote_path: Location of the file
-        :param user: Expected owner of the file
-        :return: True if the file owner is the expected user, False otherwise
-        """
-        passed: bool = False
-
-        if not self.assert_file_exists(remote_path):
-            return False
-
-        remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
-        if remote_file.owner == user:
-            passed = True
-        else:
-            self.log.debug(f"File owner is '{remote_file.owner}' not '{user}'")
-
-        return passed
+    # def assert_file_owner(self, remote_path: str, user: str) -> bool:
+    #     """
+    #     Confirms the owner of a file is the expected user
+    #
+    #     :param remote_path: Location of the file
+    #     :param user: Expected owner of the file
+    #     :return: True if the file owner is the expected user, False otherwise
+    #     """
+    #     passed: bool = False
+    #
+    #     if not self.assert_file_exists(remote_path):
+    #         return False
+    #
+    #     remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
+    #     owner_uid = remote_file.stat().st_uid
+    #     owner = pwd.getpwuid(owner_uid)[0]
+    #
+    #     if remote_file.owner() == user:
+    #         passed = True
+    #     else:
+    #         self.log.debug(f"File owner is '{remote_file.owner()}' not '{user}'")
+    #
+    #     return passed
 
     def assert_permissions(self, remote_path: str, perms: oct) -> bool:
         """
@@ -390,11 +372,7 @@ class SSHAutomation:
 
         remote_file = pwnlib.filesystem.SSHPath(remote_path, ssh=self.ssh)
         file_perms = remote_file.stat().st_mode & 0o777
-        if file_perms == perms:
-            passed = True
-        else:
-            self.log.debug(f"File permissions are '{file_perms}' not '{perms}'")
-        return passed
+        return file_perms == perms
 
     @classmethod
     def connect_ssh(cls, ip: str, port: int, user: str, password: str = "", keyfile: str = "") -> pwnlib.tubes.ssh.ssh:

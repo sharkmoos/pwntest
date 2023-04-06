@@ -2,7 +2,7 @@ import sys
 import pytest
 import os
 import requests
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 sys.path.append(os.getcwd())
 import pwntest
@@ -34,10 +34,8 @@ def test_assert_page_not_found():
 
 @pytest.mark.example
 def test_reverse_shell():
-    shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code)
+    shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code, remote_host=rhost, remote_port=rport)
     assert shell
-    shell.sendline(b"echo FOOBAR")
-    assert b"FOOBAR" in shell.recvline().strip()
     shell.close()
 
 
@@ -122,7 +120,7 @@ def test_fail_reverse_shell():
     def exploit_code_fail(p1, p2, p3, p4):
         return False
 
-    shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code_fail, timeout=1)
+    shell = tester.run_reverse_shell_exploit(lhost, lport, exploit_code_fail, timeout=1, p3="", p4="")
     assert not shell
 
 

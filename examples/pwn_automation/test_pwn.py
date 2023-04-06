@@ -20,11 +20,11 @@ def bad_exploit():
 
 @pytest.mark.example
 def test_assert_exploit():
-    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_flag, flag="cueh{", flag_path="/flag")
-    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell)
-
-    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_flag, flag="cueh{", flag_path="/flag", ip=tester.remote_ip, port=tester.remote_port)
+    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_flag, flag="cueh{test_flag}", ip=tester.remote_ip, port=tester.remote_port)
     assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell, ip=tester.remote_ip, port=tester.remote_port)
+
+    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_flag, flag="cueh{", ip=tester.remote_ip, port=tester.remote_port)
+    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell, flag="cueh{", flag_path="/flag", ip=tester.remote_ip, port=tester.remote_port)
 
 @pytest.mark.example
 def test_assert_symbol_exists():
@@ -56,14 +56,6 @@ def test_assert_string_exists():
 def test_unit_assert_exploit():
     with pytest.raises(TypeError) as e_info:
         tester.BinaryAutomation.assert_exploit(exploit="", flag="cueh{", flag_path="/flag")
-
-    with pytest.raises(ValueError) as e_info:
-        tester.BinaryAutomation.assert_exploit(exploit=bad_exploit, flag="cueh{", flag_path="/flag")
-
-    with pytest.raises(ValueError) as e_info:
-        tester.BinaryAutomation.assert_exploit(exploit=exploit_shell, flag=False, flag_path="/flag")
-
-    assert tester.BinaryAutomation.assert_exploit(exploit=exploit_shell, remote=True)
 
 
 @pytest.mark.parametrize("sym", [

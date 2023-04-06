@@ -16,9 +16,9 @@ tester = pwntest.PwnTest(remote_target=ip, port=port, ssh={
 })
 
 
-@pytest.mark.example
-def test_ssh_base_user():
+def test_assert_current_user():
     assert tester.SSHAutomation.assert_current_user("david")
+    assert not tester.SSHAutomation.assert_current_user("root")
 
 
 @pytest.mark.example
@@ -30,4 +30,14 @@ def test_ssh_priv_esc():
     assert tester.assert_priv_esc("root", "/tmp/priv.sh", tester.SSHAutomation.ssh)
 
 
-test_ssh_base_user()
+def test_assert_permissions():
+    assert tester.SSHAutomation.assert_permissions("/etc/passwd", 0o644)
+    assert not tester.SSHAutomation.assert_permissions("/etc/passwd", 0o777)
+
+
+def test_assert_file_exists():
+    assert tester.SSHAutomation.assert_file_exists("/etc/passwd")
+    assert not tester.SSHAutomation.assert_file_exists("/etc/foobar")
+
+
+

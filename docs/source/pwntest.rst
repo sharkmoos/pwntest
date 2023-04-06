@@ -1,6 +1,14 @@
 pwntest package
 ===============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pwntest.modules
+
 Module contents
 ---------------
 

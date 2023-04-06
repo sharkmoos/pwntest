@@ -4,6 +4,7 @@ TODO:
     - Setting breakpoints etc causes a crash if the program is running. Do a check
         before actually doing these ops
 """
+
 import os
 import subprocess
 import tempfile
@@ -24,7 +25,6 @@ from pwnlib.util import proc
 from pwnlib.timeout import Timeout
 
 log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
-gdb_procs: dict = {}
 
 
 class ExtendedGdb(pwnlib.gdb.Gdb):
@@ -51,6 +51,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         # if initialised with gdb.debug, the name may not be passed
         self.binary_base = None
         self.section_bases: dict = {}
+        self._target = None
 
         if not binary_path:
             with open(f"/proc/{self.selected_inferior().pid}/cmdline", "rt") as f:
@@ -59,6 +60,8 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         else:
             self.binary_path: str = binary_path.decode()
 
+        atexit.register(self.__del__)
+
     def __del__(self) -> None:
         """
         Destructor. Terminate the gdb process and remove it from the global
@@ -66,37 +69,22 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return:
         """
-        self._target.close() # TODO: check if this works properly
-        try:
-            current_pid: int = self.get_pid()
-            gdb_procs.pop(current_pid)
-            self.quit()
-        except EOFError:
-            # gdb process has already terminated
-            pass
+        self.close()
 
-    def _process_close(self) -> None:
-        """
-        To be used by close() method, to close gdb automatically
-        when the user closes the process.
-        :return:
-        """
-        self.__del__()
-
-    @staticmethod
-    def cleanup() -> None:
-        """
-        Cleanup function. Called when the program exits.
-        Terminates all gdb processes.
-
-        :return:
-        """
-        if len(gdb_procs) > 0:
-            for process in gdb_procs:
-                try:
-                    gdb_procs[process].terminate()
-                except EOFError:
-                    pass
+    # @staticmethod
+    # def cleanup() -> None:
+    #     """
+    #     Cleanup function. Called when the program exits.
+    #     Terminates all gdb processes.
+    #
+    #     :return:
+    #     """
+    #     if len(gdb_procs) > 0:
+    #         for process in gdb_procs:
+    #             try:
+    #                 gdb_procs[process].terminate()
+    #             except EOFError:
+    #                 pass
 
     def run_command(self, command: str) -> None:
         """
@@ -144,28 +132,28 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         try:
             self.quit()
 
-            if self._target.proc is None:
-                return
+            if isinstance(self._target, pwnlib.tubes.process.process):
+                if self._target.proc is None:
+                    return
 
-            # First check if we are already dead
-            self._target.poll()
+                # First check if we are already dead
+                self._target.poll(False)
 
-            # close file descriptors
-            for fd in [self._target.proc.stdin,
-                       self._target.proc.stdout, self._target.proc.stderr]:
-                if fd is not None:
-                    try:
-                        fd.close()
-                    except IOError as e:
-                        if e.errno != self.EPIPE:
-                            raise
+                # close file descriptors
+                for fd in [self._target.proc.stdin,
+                           self._target.proc.stdout, self._target.proc.stderr]:
+                    if fd is not None:
+                        try:
+                            fd.close()
+                        except IOError as e:
+                            if e.errno != self.EPIPE:
+                                raise
 
-            if not self._target._stop_noticed:
-                self._target.proc.kill()
-                self._target.proc.wait()
-                self._target._stop_noticed = time.time()
+                if not self._target._stop_noticed:
+                    self._target.proc.kill()
+                    self._target.proc.wait()
+                    self._target._stop_noticed = time.time()
 
-            self.__del__()
         except OSError:
             pass
         except EOFError:
@@ -735,7 +723,6 @@ def attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
 
     gdb_proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    gdb_procs[gdb_proc.pid] = gdb_proc  # add to list of gdb processes
 
     gdb_pid = gdb_proc.pid
     # gdb_pid = pwnlib.util.misc.run_in_new_terminal(cmd, preexec_fn = preexec_fn)
@@ -806,5 +793,3 @@ def attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
 
     return gdb_pid, gdb_proc
 
-
-atexit.register(ExtendedGdb.cleanup)

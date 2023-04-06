@@ -14,7 +14,6 @@ import pwntest
 elf = pwnlib.context.binary = pwnlib.elf.ELF('examples/gdb_automation/demo')
 os.system(f"chmod +x {elf.path}")
 
-
 @pytest.mark.example
 def test_breakpoint():
     p = pwnlib.tubes.process.process([elf.path])
