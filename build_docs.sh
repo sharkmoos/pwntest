@@ -6,11 +6,9 @@
 #rm build_docs/source/extended_gdb.rst
 #rm build_docs/source/pwntest.rst
 
-rm build_docs/source/pwntest.rst
+#rm build_docs/source/pwntest.rst
+rm -rf docs/*
 rm build_docs/source/pwntest.modules.rst
-rm build_docs/source/modules.rst
-rm build_docs/source/modules.rst
-rm build_docs/source/modules.rst
 
 # Why is there no recursive option?
 sphinx-apidoc -o build_docs/source pwntest/
@@ -19,4 +17,4 @@ sphinx-apidoc -o build_docs/source pwntest/modules/
 cd build_docs || exit 1
 make html
 cd ..
-cp -R build_docs/build/html/ docs/
+cp -R build_docs/build/html/* docs/

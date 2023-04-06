@@ -10,7 +10,7 @@ Welcome to pwntest's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   pwntest.modules
 
 
 Indices and tables
