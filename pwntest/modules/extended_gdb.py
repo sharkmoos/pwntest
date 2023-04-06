@@ -24,6 +24,7 @@ import pwnlib.qemu
 from pwnlib.util import proc
 from pwnlib.timeout import Timeout
 
+
 log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
 

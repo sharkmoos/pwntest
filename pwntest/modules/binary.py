@@ -49,6 +49,7 @@ class BinaryAutomation:
             except ELFError:
                 self.log.warning("Could not load ELF file. Functions that require an ELF file will not work.")
 
+
     def __del__(self) -> None:
         """
         Clean up the BinaryAutomation class
