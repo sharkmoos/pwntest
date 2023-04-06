@@ -1,0 +1,7 @@
+gdb\_api\_bridge module
+=======================
+
+.. automodule:: gdb_api_bridge
+   :members:
+   :undoc-members:
+   :show-inheritance:

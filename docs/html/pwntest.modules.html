@@ -347,10 +347,6 @@ Length should not be less than 4, as this will return a lot of false positives.
 </section>
 <section id="module-pwntest.modules.extended_gdb">
 <span id="pwntest-modules-extended-gdb-module"></span><h2>pwntest.modules.extended_gdb module<a class="headerlink" href="#module-pwntest.modules.extended_gdb" title="Permalink to this heading">#</a></h2>
-<p># TODO:
-#     - Remove unnecessary code and args from test_debug and test_attach
-#     - Setting breakpoints etc causes a crash if the program is running. Do a check
-#         before actually doing these ops</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwntest.modules.extended_gdb.ExtendedGdb">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwntest.modules.extended_gdb.</span></span><span class="sig-name descname"><span class="pre">ExtendedGdb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb" title="Permalink to this definition">#</a></dt>
@@ -603,6 +599,9 @@ This code is taken from the pwntools gdb module under MIT license:
 <a class="reference external" href="https://github.com/Gallopsled/pwntools/blob/c45e92d78b3fc6ecf0a3b839417bbaee2e54637c/pwnlib/gdb.py#L366">https://github.com/Gallopsled/pwntools/blob/c45e92d78b3fc6ecf0a3b839417bbaee2e54637c/pwnlib/gdb.py#L366</a></p>
 </dd></dl>
 
+</section>
+<section id="pwntest-modules-gdb-api-bridge-module">
+<h2>pwntest.modules.gdb_api_bridge module<a class="headerlink" href="#pwntest-modules-gdb-api-bridge-module" title="Permalink to this heading">#</a></h2>
 </section>
 <section id="module-pwntest.modules.web">
 <span id="pwntest-modules-web-module"></span><h2>pwntest.modules.web module<a class="headerlink" href="#module-pwntest.modules.web" title="Permalink to this heading">#</a></h2>
@@ -903,6 +902,7 @@ Currently, this is not done automatically as it would be difficult to decide on 
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.debug"><code class="docutils literal notranslate"><span class="pre">debug()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pwntest-modules-gdb-api-bridge-module">pwntest.modules.gdb_api_bridge module</a></li>
 <li><a class="reference internal" href="#module-pwntest.modules.web">pwntest.modules.web module</a><ul>
 <li><a class="reference internal" href="#pwntest.modules.web.WebAutomation"><code class="docutils literal notranslate"><span class="pre">WebAutomation</span></code></a><ul>
 <li><a class="reference internal" href="#pwntest.modules.web.WebAutomation.assert_get_page_not_found"><code class="docutils literal notranslate"><span class="pre">WebAutomation.assert_get_page_not_found()</span></code></a></li>
