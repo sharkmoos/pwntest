@@ -1,0 +1,7 @@
+modules.web module
+==================
+
+.. automodule:: modules.web
+   :members:
+   :undoc-members:
+   :show-inheritance:

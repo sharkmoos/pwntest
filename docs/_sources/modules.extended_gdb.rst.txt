@@ -1,0 +1,7 @@
+modules.extended\_gdb module
+============================
+
+.. automodule:: modules.extended_gdb
+   :members:
+   :undoc-members:
+   :show-inheritance:

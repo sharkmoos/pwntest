@@ -1,0 +1,7 @@
+modules.binary module
+=====================
+
+.. automodule:: modules.binary
+   :members:
+   :undoc-members:
+   :show-inheritance:
