@@ -4,37 +4,13 @@ pwntest.modules package
 Submodules
 ----------
 
-pwntest.modules.binary module
------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: pwntest.modules.binary
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pwntest.modules.extended\_gdb module
-------------------------------------
-
-.. automodule:: pwntest.modules.extended_gdb
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pwntest.modules.gdb\_api\_bridge module
----------------------------------------
-
-.. automodule:: pwntest.modules.gdb_api_bridge
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pwntest.modules.web module
---------------------------
-
-.. automodule:: pwntest.modules.web
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   pwntest.modules.binary
+   pwntest.modules.extended_gdb
+   pwntest.modules.gdb_api_bridge
+   pwntest.modules.web
 
 Module contents
 ---------------

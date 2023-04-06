@@ -6,16 +6,16 @@
 Welcome to pwntest's documentation!
 ===================================
 
+pwntest is a Python library to enhance CTF challenge testing. Stop giving
+away points in CTFs via unintendeds and or broken challenges, start unit testing
+with pwntest.
+
+----------------
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   pwntest
    pwntest.modules
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

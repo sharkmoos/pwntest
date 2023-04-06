@@ -1,7 +1,0 @@
-web\_ops module
-===============
-
-.. automodule:: web_ops
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -11,8 +11,8 @@ rm -rf docs/*
 rm build_docs/source/pwntest.modules.rst
 
 # Why is there no recursive option?
-sphinx-apidoc -o build_docs/source pwntest/
-sphinx-apidoc -o build_docs/source pwntest/modules/
+sphinx-apidoc -F -e -o build_docs/source pwntest/
+#sphinx-apidoc -e -o build_docs/source pwntest/modules/
 
 cd build_docs || exit 1
 make html
