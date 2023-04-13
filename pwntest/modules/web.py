@@ -1,6 +1,5 @@
 import requests
 from urllib3.util.url import parse_url
-
 from bs4 import BeautifulSoup
 
 import pwnlib.log
