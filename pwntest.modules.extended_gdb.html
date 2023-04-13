@@ -200,6 +200,55 @@
         <article role="main">
           <section id="module-pwntest.modules.extended_gdb">
 <span id="pwntest-modules-extended-gdb-module"></span><h1>pwntest.modules.extended_gdb module<a class="headerlink" href="#module-pwntest.modules.extended_gdb" title="Permalink to this heading">#</a></h1>
+<p>The <cite>extended_gdb</cite> module encapsulates the <cite>pwnlib.gdb</cite> module and
+integrates the GDB Python API for programmatic control when testing
+reverse engineering or binary exploitation challenges.</p>
+<p><strong>Using the extended_gdb module using pwntools processes</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">pwnlib</span><span class="o">.</span><span class="n">tubes</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="s2">&quot;./example&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gdb_proc</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">Breakpoint</span><span class="p">(</span><span class="s2">&quot;*main+52&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;A&quot;</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">continue_and_wait</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="s2">&quot;rdi&quot;</span><span class="p">))</span>
+<span class="go">AAAAAAAA</span>
+</pre></div>
+</div>
+<p><strong>Using the extended_gdb module via debug</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">Breakpoint</span><span class="p">(</span><span class="s2">&quot;*main+52&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;FOOBAR&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">continue_and_wait</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expected_pc</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_binary_base</span><span class="p">()</span> <span class="o">+</span> <span class="n">elf</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">main</span> <span class="o">+</span> <span class="mi">52</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actual_pc</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="s2">&quot;rip&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expected_pc</span><span class="si">}</span><span class="s2"> == </span><span class="si">{</span><span class="n">actual_pc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="go">0x4005c2 == 0x4005c2</span>
+</pre></div>
+</div>
+<p><strong>Want to write a GDB script? Feel free</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="s2">&quot;b *main+52</span><span class="se">\n</span><span class="s2">continue&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;FOOBAR&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expected_pc</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_binary_base</span><span class="p">()</span> <span class="o">+</span> <span class="n">elf</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">main</span> <span class="o">+</span> <span class="mi">52</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actual_pc</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="s2">&quot;rip&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expected_pc</span><span class="si">}</span><span class="s2"> == </span><span class="si">{</span><span class="n">actual_pc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Don’t want to use pwntools processes? Fine, use subprocesses</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;./example&quot;</span><span class="p">],</span> <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gdb_proc</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">get_binary_base</span><span class="p">())</span>
+<span class="go">&#39;0x55eafea91000&#39;</span>
+</pre></div>
+</div>
+<section id="implicit-functionality">
+<h2>Implicit Functionality<a class="headerlink" href="#implicit-functionality" title="Permalink to this heading">#</a></h2>
+<p>Since the extended_gdb module extends the pwntools gdb module, you have
+access to all the members of the regular pwntools GDB module.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.pwntools.com/en/dev/gdb.html#member-documentation">https://docs.pwntools.com/en/dev/gdb.html#member-documentation</a></p></li>
+</ul>
+</section>
+<hr class="docutils" />
 <dl class="py class">
 <dt class="sig sig-object py" id="pwntest.modules.extended_gdb.ExtendedGdb">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwntest.modules.extended_gdb.</span></span><span class="sig-name descname"><span class="pre">ExtendedGdb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb" title="Permalink to this definition">#</a></dt>
@@ -221,23 +270,12 @@ however it should work in the same way as just using the gdb api directly.</p>
 <dd class="field-even"><p>Address of symbol. 0 if symbol not found</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pwntest.modules.extended_gdb.ExtendedGdb.check_regs_value">
-<span class="sig-name descname"><span class="pre">check_regs_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb.check_regs_value" title="Permalink to this definition">#</a></dt>
-<dd><p>Checks that the expected values in a dictionary of registers
-match the actual values in memory.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>registers</strong> – Dictionary of register names and values to check,
-e.g. {“rax”: 0xdeadbeef}</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary of register names and values with fields matched
-(bool), expected (int), actual (int)</p>
-</dd>
-</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">address_from_symbol</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">))</span>
+<span class="go">0x55bc482ca159</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -260,6 +298,12 @@ e.g. {“rax”: 0xdeadbeef}</p>
 <dd class="field-odd"><p>Base address of binary. -1 if not found</p>
 </dd>
 </dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">get_binary_base</span><span class="p">())</span>
+<span class="go">0x55bc482ca000</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -272,6 +316,12 @@ e.g. {“rax”: 0xdeadbeef}</p>
 Returns 0 if no process is running.</p>
 </dd>
 </dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">get_pid</span><span class="p">()</span>
+<span class="go">8655</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -306,23 +356,6 @@ Returns 0 if no process is running.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pwntest.modules.extended_gdb.ExtendedGdb.match_reg_value">
-<span class="sig-name descname"><span class="pre">match_reg_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb.match_reg_value" title="Permalink to this definition">#</a></dt>
-<dd><p>Check that the expected value of a register matches the value in memory</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>register</strong> – register to check</p></li>
-<li><p><strong>value</strong> – expected value</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="pwntest.modules.extended_gdb.ExtendedGdb.read_mem">
 <span class="sig-name descname"><span class="pre">read_mem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">addr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb.read_mem" title="Permalink to this definition">#</a></dt>
 <dd><p>Read memory from a given address</p>
@@ -337,6 +370,15 @@ Returns 0 if no process is running.</p>
 <dd class="field-even"><p>gdb.Value object of the value</p>
 </dd>
 </dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;FOOBAR&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">memory</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">read_mem</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="s2">&quot;rdi&quot;</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+<span class="go">b&#39;FOOBAR&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -351,13 +393,20 @@ Returns 0 if no process is running.</p>
 <dd class="field-even"><p>gdb.Value object of the value.</p>
 </dd>
 </dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">,</span> <span class="n">api</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">extended_gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;FOOBAR&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="s2">&quot;rdi&quot;</span><span class="p">)))</span>
+<span class="go">0x7ffd09a0f9a0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pwntest.modules.extended_gdb.ExtendedGdb.read_regs">
-<span class="sig-name descname"><span class="pre">read_regs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb.read_regs" title="Permalink to this definition">#</a></dt>
-<dd><p>Read value from multiple register.
-Wrapper around newest_frame().read_register().</p>
+<span class="sig-name descname"><span class="pre">read_regs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pwntest.modules.extended_gdb.ExtendedGdb.read_regs" title="Permalink to this definition">#</a></dt>
+<dd><p>Read value from multiple registers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>registers</strong> – List of registers to read from</p>
@@ -510,15 +559,14 @@ This code is taken from the pwntools gdb module under MIT license:
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">pwntest.modules.extended_gdb module</a><ul>
+<li><a class="reference internal" href="#implicit-functionality">Implicit Functionality</a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb</span></code></a><ul>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.address_from_symbol"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.address_from_symbol()</span></code></a></li>
-<li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.check_regs_value"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.check_regs_value()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.close"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.close()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.get_binary_base"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.get_binary_base()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.get_pid"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.get_pid()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.get_section_base"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.get_section_base()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.is_running"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.is_running()</span></code></a></li>
-<li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.match_reg_value"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.match_reg_value()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.read_mem"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.read_mem()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.read_reg"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.read_reg()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.extended_gdb.ExtendedGdb.read_regs"><code class="docutils literal notranslate"><span class="pre">ExtendedGdb.read_regs()</span></code></a></li>
