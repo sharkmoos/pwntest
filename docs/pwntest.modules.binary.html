@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="pwntest.modules.extended_gdb module" href="pwntest.modules.extended_gdb.html" /><link rel="prev" title="pwntest.modules package" href="pwntest.modules.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="pwntest.modules.extended_gdb" href="pwntest.modules.extended_gdb.html" /><link rel="prev" title="pwntest.modules.web" href="pwntest.modules.web.html" />
 
     <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
-        <title>pwntest.modules.binary module - pwntest 0.1.0 documentation</title>
+        <title>pwntest.modules.binary - pwntest 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pwntest 0.1.0 documentation</div></a>
+      <a href="index.html"><div class="brand">pwntest 0.0.1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -146,7 +146,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">pwntest 0.1.0 documentation</span>
+  <span class="sidebar-brand-text">pwntest 0.0.1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -154,16 +154,12 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pwntest.html">pwntest package</a></li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="pwntest.modules.html">pwntest.modules package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">pwntest.modules.binary module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.extended_gdb.html">pwntest.modules.extended_gdb module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.gdb_api_bridge.html">pwntest.modules.gdb_api_bridge module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.web.html">pwntest.modules.web module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="pwntest.modules.web.html">pwntest.modules.web</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">pwntest.modules.binary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pwntest.modules.extended_gdb.html">pwntest.modules.extended_gdb</a></li>
 </ul>
 
 </div>
@@ -199,10 +195,24 @@
         </div>
         <article role="main">
           <section id="module-pwntest.modules.binary">
-<span id="pwntest-modules-binary-module"></span><h1>pwntest.modules.binary module<a class="headerlink" href="#module-pwntest.modules.binary" title="Permalink to this heading">#</a></h1>
-<p>The Binary Automation module is all about interacting with Linux ELF binaries.
+<span id="pwntest-modules-binary"></span><h1>pwntest.modules.binary<a class="headerlink" href="#module-pwntest.modules.binary" title="Permalink to this heading">#</a></h1>
+<p>The binary module is all about interacting with Linux ELF binaries.
 You can load other binary file formats into this module, but some of the
 functionality will not work.</p>
+<p>This module can be initialised either directly, or by using the base PwnTest class.
+The decision is left up to the user, we would recommend using the base PwnTest class
+if functionality from other modules or the base pwntest class is required.</p>
+<p><strong>Method 1</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pwntest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">PwnTest</span><span class="p">(</span><span class="n">remote_target</span><span class="o">=</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Method 2</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pwntest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">WebAutomation</span><span class="p">(</span><span class="n">remote_target</span><span class="o">=</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+</div>
+<hr class="docutils" />
 <dl class="py class">
 <dt class="sig sig-object py" id="pwntest.modules.binary.BinaryAutomation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwntest.modules.binary.</span></span><span class="sig-name descname"><span class="pre">BinaryAutomation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pwntest.modules.binary.BinaryAutomation" title="Permalink to this definition">#</a></dt>
@@ -355,18 +365,18 @@ Length should not be less than 4, as this will return a lot of false positives.
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">pwntest.modules.extended_gdb module</div>
+                <div class="title">pwntest.modules.extended_gdb</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="pwntest.modules.html">
+          <a class="prev-page" href="pwntest.modules.web.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">pwntest.modules package</div>
+                <div class="title">pwntest.modules.web</div>
                 
               </div>
             </a>
@@ -400,7 +410,7 @@ Length should not be less than 4, as this will return a lot of false positives.
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">pwntest.modules.binary module</a><ul>
+<li><a class="reference internal" href="#">pwntest.modules.binary</a><ul>
 <li><a class="reference internal" href="#pwntest.modules.binary.BinaryAutomation"><code class="docutils literal notranslate"><span class="pre">BinaryAutomation</span></code></a><ul>
 <li><a class="reference internal" href="#pwntest.modules.binary.BinaryAutomation.assert_exploit"><code class="docutils literal notranslate"><span class="pre">BinaryAutomation.assert_exploit()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.modules.binary.BinaryAutomation.assert_protections"><code class="docutils literal notranslate"><span class="pre">BinaryAutomation.assert_protections()</span></code></a></li>

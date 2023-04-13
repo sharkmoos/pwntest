@@ -1,4 +1,4 @@
-pwntest.modules.extended\_gdb module
+pwntest.modules.extended\_gdb
 ====================================
 
 .. automodule:: pwntest.modules.extended_gdb
