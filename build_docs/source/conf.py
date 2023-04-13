@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath('../pwntest/modules'))
 project = 'pwntest'
 copyright = '2023, sharkmoos'
 author = 'sharkmoos'
-release = '0.1.0'
+release = '0.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
