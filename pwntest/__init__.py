@@ -1,3 +1,32 @@
+"""
+
+The pwntest class encapsulates all the functionality of pwntest. Depending
+on the arguments supplied to the constructor, it will initialise all
+relevent subclass objects.
+
+For example, supplying a ``binary_path`` argument will initialise the
+``BinaryAutomation`` class, which can be used to automate the testing of
+a binary.
+
+>>> import pwntest
+>>> tester = pwntest.PwnTest(binary_path="./example_binary")
+
+If you want to test a web challenge, you can supply the ``remote_target`` and
+``port`` arguments, which will initialise the ``WebAutomation`` class.
+
+>>> import pwntest
+>>> tester = pwntest.PwnTest(remote_target="example.com", port=80)
+
+Supplying the ``binary_path``, ``remote_target``, and ``port`` arguments will
+initialise the ``BinaryAutomation`` and ``WebAutomation`` classes, but passes
+the ``remote_target`` and ``port`` arguments to the ``BinaryAutomation`` class
+object as well, since they may be required for connecting to a remote pwn
+target.
+
+------------------------------
+
+"""
+
 import os
 import threading
 import base64
