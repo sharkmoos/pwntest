@@ -198,6 +198,28 @@
 <h1>pwntest package<a class="headerlink" href="#pwntest-package" title="Permalink to this heading">#</a></h1>
 <section id="module-pwntest">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pwntest" title="Permalink to this heading">#</a></h2>
+<p>The pwntest class encapsulates all the functionality of pwntest. Depending
+on the arguments supplied to the constructor, it will initialise all
+relevent subclass objects.</p>
+<p>For example, supplying a <code class="docutils literal notranslate"><span class="pre">binary_path</span></code> argument will initialise the
+<code class="docutils literal notranslate"><span class="pre">BinaryAutomation</span></code> class, which can be used to automate the testing of
+a binary.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pwntest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">PwnTest</span><span class="p">(</span><span class="n">binary_path</span><span class="o">=</span><span class="s2">&quot;./example_binary&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to test a web challenge, you can supply the <code class="docutils literal notranslate"><span class="pre">remote_target</span></code> and
+<code class="docutils literal notranslate"><span class="pre">port</span></code> arguments, which will initialise the <code class="docutils literal notranslate"><span class="pre">WebAutomation</span></code> class.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pwntest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span> <span class="o">=</span> <span class="n">pwntest</span><span class="o">.</span><span class="n">PwnTest</span><span class="p">(</span><span class="n">remote_target</span><span class="o">=</span><span class="s2">&quot;example.com&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Supplying the <code class="docutils literal notranslate"><span class="pre">binary_path</span></code>, <code class="docutils literal notranslate"><span class="pre">remote_target</span></code>, and <code class="docutils literal notranslate"><span class="pre">port</span></code> arguments will
+initialise the <code class="docutils literal notranslate"><span class="pre">BinaryAutomation</span></code> and <code class="docutils literal notranslate"><span class="pre">WebAutomation</span></code> classes, but passes
+the <code class="docutils literal notranslate"><span class="pre">remote_target</span></code> and <code class="docutils literal notranslate"><span class="pre">port</span></code> arguments to the <code class="docutils literal notranslate"><span class="pre">BinaryAutomation</span></code> class
+object as well, since they may be required for connecting to a remote pwn
+target.</p>
+<hr class="docutils" />
 <dl class="py class">
 <dt class="sig sig-object py" id="pwntest.PwnTest">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwntest.</span></span><span class="sig-name descname"><span class="pre">PwnTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pwntest.PwnTest" title="Permalink to this definition">#</a></dt>
