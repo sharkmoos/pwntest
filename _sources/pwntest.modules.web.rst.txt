@@ -1,4 +1,4 @@
-pwntest.modules.web module
+pwntest.modules.web
 ==========================
 
 .. automodule:: pwntest.modules.web
