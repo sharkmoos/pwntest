@@ -70,6 +70,7 @@ def test_unit_assert_symbol_exists(sym: str):
     assert tester.BinaryAutomation.assert_symbol_exists(sym[0]) == sym[1]
 
 
+
 @pytest.mark.parametrize("lst", [
     (["NX", "relro pArTiAl"], True),
     (["nX", "relro pArTiAl"], True),

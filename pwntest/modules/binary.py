@@ -1,3 +1,10 @@
+"""
+The Binary Automation module is all about interacting with Linux ELF binaries.
+You can load other binary file formats into this module, but some of the
+functionality will not work.
+"""
+
+
 import re
 import tempfile
 import os
@@ -48,6 +55,8 @@ class BinaryAutomation:
                 self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
             except ELFError:
                 self.log.warning("Could not load ELF file. Functions that require an ELF file will not work.")
+        else:
+            self.log.error("No binary provided.")
 
     def __del__(self) -> None:
         """
