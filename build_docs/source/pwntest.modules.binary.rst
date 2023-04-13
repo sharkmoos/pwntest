@@ -1,4 +1,4 @@
-pwntest.modules.binary module
+pwntest.modules.binary
 =============================
 
 .. automodule:: pwntest.modules.binary

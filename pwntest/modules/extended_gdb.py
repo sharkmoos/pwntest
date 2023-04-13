@@ -1,4 +1,58 @@
 """
+The `extended_gdb` module encapsulates the `pwnlib.gdb` module and
+integrates the GDB Python API for programmatic control when testing
+reverse engineering or binary exploitation challenges.
+
+**Using the extended_gdb module using pwntools processes**
+
+>>> p = pwnlib.tubes.process.process("./example")
+>>> gdb_proc, api = pwntest.extended_gdb.attach(p)
+>>> api.Breakpoint("*main+52")
+>>> p.sendline(b"A" * 8)
+>>> api.continue_and_wait()
+>>> print(api.read_reg("rdi"))
+AAAAAAAA
+
+**Using the extended_gdb module via debug**
+
+>>> p, api = pwntest.extended_gdb.debug(elf.path)
+>>> api.Breakpoint("*main+52")
+>>> p.sendline(b"FOOBAR")
+>>> api.continue_and_wait()
+>>> expected_pc = api.get_binary_base() + elf.sym.main + 52
+>>> actual_pc = api.read_reg("rip")
+>>> print(f"{expected_pc} == {actual_pc}")
+0x4005c2 == 0x4005c2
+
+**Want to write a GDB script? Feel free**
+
+>>> p, api = pwntest.extended_gdb.debug(elf.path, gdbscript="b *main+52\\ncontinue")
+>>> p.sendline(b"FOOBAR")
+>>> api.wait()
+>>> expected_pc = api.get_binary_base() + elf.sym.main + 52
+>>> actual_pc = api.read_reg("rip")
+>>> print(f"{expected_pc} == {actual_pc}")
+
+**Don't want to use pwntools processes? Fine, use subprocesses**
+
+>>> p = subprocess.Popen(["./example"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+>>> gdb_proc, api = pwntest.extended_gdb.attach(p.args[0])
+>>> hex(api.get_binary_base())
+'0x55eafea91000'
+
+
+Implicit Functionality
+---------------------------
+
+Since the extended_gdb module extends the pwntools gdb module, you have
+access to all the members of the regular pwntools GDB module.
+
+* https://docs.pwntools.com/en/dev/gdb.html#member-documentation
+
+----------------------------
+"""
+
+"""
 TODO:
     - Remove unnecessary code and args from test_debug and test_attach
     - Setting breakpoints etc causes a crash if the program is running. Do a check
@@ -24,7 +78,6 @@ import pwnlib.qemu
 from pwnlib.util import proc
 from pwnlib.timeout import Timeout
 
-
 log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
 
@@ -39,7 +92,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
     """
 
     # def __init__(self, conn: rpyc.core.protocol.Connection, binary_path: str):
-    def __init__(self, conn, binary_path: bytes):
+    def __init__(self, conn, binary_path: bytes) -> None:
         """
         Constructor. Starts a gdb process and adds it to the global
         list of gdb processes.
@@ -52,6 +105,7 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         # if initialised with gdb.debug, the name may not be passed
         self.binary_base = None
         self.section_bases: dict = {}
+        self.binary_symbols: dict = {}
         self._target = None
 
         if not binary_path:
@@ -69,7 +123,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return:
         """
-        self.close()
+        try:
+            self.close()
+        except:
+            pass
 
     # @staticmethod
     # def cleanup() -> None:
@@ -115,6 +172,13 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return: PID of current debugged process.
             Returns 0 if no process is running.
+
+        Example:
+
+        >>> p, api = pwntest.extended_gdb.debug(elf.path)
+        >>> api.get_pid()
+        8655
+
         """
         pid: int = self.selected_inferior().pid
         log.debug(f"Current PID is {pid}")
@@ -128,7 +192,6 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :return: None
         """
-
         try:
             self.quit()
 
@@ -199,6 +262,13 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         Get the base address of the binary currently being debugged
 
         :return: Base address of binary. -1 if not found
+
+        Example:
+
+        >>> p, api = pwntest.extended_gdb.debug(elf.path)
+        >>> print(api.get_binary_base())
+        0x55bc482ca000
+
         """
         if "binary_base" not in self.section_bases:
             self.section_bases["binary_base"]: int = self.get_section_base(self.binary_path)
@@ -212,7 +282,17 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :param symbol: Symbol to get address of
         :return: Address of symbol. 0 if symbol not found
+
+        Example:
+
+        >>> p, api = pwntest.extended_gdb.debug(elf.path)
+        >>> print(api.address_from_symbol("main"))
+        0x55bc482ca159
+
         """
+
+        if symbol in self.binary_symbols:
+            return self.binary_symbols[symbol]
 
         sym = self.lookup_symbol(symbol)[0]
 
@@ -221,24 +301,10 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         elif not sym.is_function:
             log.debug(f"Symbol '{symbol}' is not a function")
         else:
-            return sym.value().address
+            self.binary_symbols[sym.name] = int(sym.value().address)
+            return self.binary_symbols[sym.name]
 
         return 0
-
-    def read_mem(self, addr: int, length: int) -> bytes:
-        """
-        Read memory from a given address
-
-        :param addr: Address to read from
-        :param length: Number of bytes to read
-        :return: gdb.Value object of the value
-        """
-
-        if self.is_running():
-            log.warning("Reading from memory while program is running can "
-                        "cause unexpected behaviour")
-
-        return self.inferiors()[0].read_memory(addr, length).tobytes()
 
     def read_reg(self, register: str) -> int:
         """
@@ -246,6 +312,14 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         :param register: Register to read from
         :return: gdb.Value object of the value.
+
+        Example:
+
+        >>> p, api = pwntest.extended_gdb.debug(elf.path)
+        >>> p.sendline(b"FOOBAR")
+        >>> api.wait()
+        >>> print(hex(api.read_reg("rdi")))
+        0x7ffd09a0f9a0
         """
 
         if self.is_running():
@@ -261,10 +335,9 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
 
         return int(value)
 
-    def read_regs(self, registers: list) -> dict:
+    def read_regs(self, registers: list) -> dict[str, int]:
         """
-        Read value from multiple register.
-        Wrapper around newest_frame().read_register().
+        Read value from multiple registers.
 
         :param registers: List of registers to read from
         :return: Dict of register: gdb.Value
@@ -275,6 +348,31 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
             results[register] = self.read_reg(register)
 
         return results
+
+    def read_mem(self, addr: int, length: int) -> bytes:
+        """
+        Read memory from a given address
+
+        :param addr: Address to read from
+        :param length: Number of bytes to read
+        :return: gdb.Value object of the value
+
+        Example:
+
+        >>> p, api = pwntest.extended_gdb.debug(elf.path)
+        >>> p.sendline(b"FOOBAR")
+        >>> api.wait()
+        >>> memory = api.read_mem(api.read_reg("rdi"), 6)
+        >>> print(memory)
+        b'FOOBAR'
+        """
+
+        if self.is_running():
+            log.warning("Reading from memory while program is running can "
+                        "cause unexpected behaviour")
+
+        return self.inferiors()[0].read_memory(addr, length).tobytes()
+
 
     def write_reg(self, register: str, value: int) -> bool:
         """
@@ -325,53 +423,6 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         else:
             return True
 
-    def match_reg_value(self, register: str, value: int) -> bool:
-        """
-        Check that the expected value of a register matches the value in memory
-
-        :param register: register to check
-        :param value: expected value
-        :return:
-        """
-        if self.is_running():
-            log.warning("Reading from registers while program is running can "
-                        "cause unexpected behaviour")
-
-        register_value: int = self.read_reg(register)
-        return register_value == value
-
-    def check_regs_value(self, registers: dict) -> dict:
-        """
-        Checks that the expected values in a dictionary of registers
-        match the actual values in memory.
-
-        :param registers: Dictionary of register names and values to check,
-            e.g. {"rax": 0xdeadbeef}
-        :return: Dictionary of register names and values with fields matched
-            (bool), expected (int), actual (int)
-        """
-
-        # TODO: See if this implementation of reading registers
-        #  or parse and eval is better
-
-        if self.is_running():
-            log.warning("Reading from memory while program is running can "
-                        "cause unexpected behaviour")
-
-        results: dict = {}
-        for register in registers.keys():
-            register_value = self.newest_frame().read_register(register)
-            try:
-                results[register] = {
-                    "match": register_value == registers[register],
-                    "expected": registers[register],
-                    "actual": register_value
-                }
-            except TypeError:
-                raise Exception(f"Expected value for register '{register}' "
-                                "is wrong type")
-
-        return results
 
 
 # Copyright (c) 2015 Gallopsled et al.
@@ -792,4 +843,3 @@ def attach(target, gdbscript="", exe=None, gdb_args=None, ssh=None,
     gdb_proc._target = target
 
     return gdb_pid, gdb_proc
-

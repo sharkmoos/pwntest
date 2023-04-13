@@ -1,10 +1,10 @@
 import os
 import sys
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/pwntest")
-sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/pwntest/modules")
-# sys.path.append(os.path.abspath('../pwntest'))
-# sys.path.append(os.path.abspath('../pwntest/modules'))
+# sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/")
+# sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/pwntest")
+# sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/pwntest/modules")
+sys.path.append(os.path.abspath('../pwntest'))
+sys.path.append(os.path.abspath('../pwntest/modules'))
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -16,7 +16,7 @@ sys.path.append("/mnt/c/Users/Muddy/OneDrive/Uni/Dissertation/pwntest/pwntest/mo
 project = 'pwntest'
 copyright = '2023, sharkmoos'
 author = 'sharkmoos'
-release = '0.1.0'
+release = '0.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

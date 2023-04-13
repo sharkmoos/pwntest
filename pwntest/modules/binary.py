@@ -1,7 +1,25 @@
 """
-The Binary Automation module is all about interacting with Linux ELF binaries.
+The binary module is all about interacting with Linux ELF binaries.
 You can load other binary file formats into this module, but some of the
 functionality will not work.
+
+This module can be initialised either directly, or by using the base PwnTest class.
+The decision is left up to the user, we would recommend using the base PwnTest class
+if functionality from other modules or the base pwntest class is required.
+
+**Method 1**
+
+
+>>> import pwntest
+>>> tester = pwntest.PwnTest(remote_target="127.0.0.1", port=5000)
+
+**Method 2**
+
+>>> import pwntest
+>>> tester = pwntest.modules.WebAutomation(remote_target="127.0.0.1", port=5000)
+
+
+----------------------------
 """
 
 
@@ -55,6 +73,8 @@ class BinaryAutomation:
                 self.elf: pwnlib.elf.ELF = pwnlib.elf.ELF(self.binary_path)
             except ELFError:
                 self.log.warning("Could not load ELF file. Functions that require an ELF file will not work.")
+            except FileNotFoundError:
+                self.log.error("Could not find file.")
         else:
             self.log.error("No binary provided.")
 
