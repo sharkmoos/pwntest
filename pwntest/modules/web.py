@@ -1,3 +1,25 @@
+"""
+The web module is all about interacting with web applications.
+
+This module can be initialised either directly, or by using the base PwnTest class.
+The decision is left up to the user, we would recommend using the base PwnTest class
+if functionality from other modules or the base pwntest class is required.
+
+**Method 1**
+
+
+>>> import pwntest
+>>> tester = pwntest.PwnTest(remote_target="example.com", port=80)
+
+**Method 2**
+
+>>> import pwntest
+>>> tester = pwntest.modules.web.WebAutomation(rhost="example.com", rport=80)
+
+
+----------------------------
+"""
+
 import requests
 from urllib3.util.url import parse_url
 from bs4 import BeautifulSoup
