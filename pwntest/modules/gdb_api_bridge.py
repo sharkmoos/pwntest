@@ -1,7 +1,9 @@
-"""GDB Python API bridge.
+"""
+GDB Python API bridge.
 This code from pwntools licensed under MIT.
 https://github.com/Gallopsled/pwntools/blob/c45e92d78b3fc6ecf0a3b839417bbaee2e54637c/pwnlib/gdb_api_bridge.py
 """
+
 # Copyright (c) 2015 Gallopsled et al.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -15,7 +17,7 @@ https://github.com/Gallopsled/pwntools/blob/c45e92d78b3fc6ecf0a3b839417bbaee2e54
 # all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,nano
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,

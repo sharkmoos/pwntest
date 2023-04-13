@@ -57,7 +57,6 @@ class ExtendedGdb(pwnlib.gdb.Gdb):
         if not binary_path:
             with open(f"/proc/{self.selected_inferior().pid}/cmdline", "rt") as f:
                 self.binary_path = f.read().strip().strip("\x00")
-                print("Binary path: ", self.binary_path)
         else:
             self.binary_path: str = binary_path.decode()
 
